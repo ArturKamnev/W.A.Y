@@ -84,7 +84,7 @@
     "problemBody": "Advice is often too generic, too late, or too focused on prestige. W.A.Y. starts earlier and makes the process personal.",
     "helpTitle": "How it helps",
     "helpBody": "It connects test insights, profession exploration, guide conversations, and saved roadmaps in one clear experience.",
-    "teamTitle": "Built by Production 10A",
+    "teamTitle": "Built by Production 10A and 10G",
     "teamLead": "The team section is ready for real contributors as the product grows.",
     "team": {
       "product": "Product thinking",
@@ -451,7 +451,7 @@
     }
   },
   "footer": {
-    "madeBy": "Made by Production 10A",
+    "madeBy": "Made by Production 10A and 10G",
     "instagram": "Instagram",
     "copyright": "© 2026 W.A.Y. All rights reserved."
   }

@@ -124,8 +124,8 @@ function Footer() {
         </div>
         <div className="footer__column">
           <h3>{t('footer.instagram')}</h3>
-          <a href="https://instagram.com/" rel="noreferrer" target="_blank">
-            @instagram_51a
+          <a href="https://www.instagram.com/12school.gymnasium/" rel="noreferrer" target="_blank">
+            Страница инстаграм
           </a>
           <span>{t('footer.copyright')}</span>
         </div>
