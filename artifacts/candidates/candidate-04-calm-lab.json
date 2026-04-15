@@ -1,0 +1,11 @@
+{
+  "name": "Calm Lab",
+  "screenPurpose": "Focused test-first product with laboratory clarity",
+  "platform": "responsive web",
+  "layout": { "grid": "centered task flow with supporting side rail", "spacingScale": ["space-3", "space-4", "space-6", "space-8"] },
+  "components": ["QuestionCard", "ProgressBar", "ResultPanel", "RecommendationGrid"],
+  "tokens": ["color-panel", "color-line", "color-accent-violet", "shadow-panel"],
+  "interactions": ["option select", "autosave", "result reveal"],
+  "accessibility": ["fieldset controls", "focus rings", "status text"],
+  "notes": "Rejected because the broader portal felt underdeveloped."
+}

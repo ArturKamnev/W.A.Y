@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "W.A.Y. UI Candidate Spec",
+  "type": "object",
+  "required": ["name", "screenPurpose", "platform", "layout", "components", "tokens", "interactions", "accessibility"],
+  "properties": {
+    "name": { "type": "string" },
+    "screenPurpose": { "type": "string" },
+    "platform": { "type": "string" },
+    "layout": {
+      "type": "object",
+      "required": ["grid", "spacingScale"],
+      "properties": {
+        "grid": { "type": "string" },
+        "spacingScale": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "components": { "type": "array", "items": { "type": "string" } },
+    "tokens": { "type": "array", "items": { "type": "string" } },
+    "interactions": { "type": "array", "items": { "type": "string" } },
+    "accessibility": { "type": "array", "items": { "type": "string" } },
+    "notes": { "type": "string" }
+  }
+}

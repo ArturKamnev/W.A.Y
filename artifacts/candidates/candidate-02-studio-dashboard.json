@@ -1,0 +1,11 @@
+{
+  "name": "Studio Dashboard",
+  "screenPurpose": "Dense productivity-style dashboard for test, results, professions, and guide",
+  "platform": "responsive web",
+  "layout": { "grid": "dashboard shell with two-column content", "spacingScale": ["space-2", "space-4", "space-6", "space-8"] },
+  "components": ["Sidebar", "MetricStrip", "Cards", "Stepper", "ChatPanel"],
+  "tokens": ["color-canvas", "color-panel", "color-accent-blue", "radius-card"],
+  "interactions": ["compact tab switching", "filter transitions", "modal details"],
+  "accessibility": ["keyboard filters", "aria-current routes", "modal focus return"],
+  "notes": "Rejected for feeling too operational and less emotionally welcoming."
+}

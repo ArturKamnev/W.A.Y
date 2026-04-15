@@ -1,0 +1,11 @@
+{
+  "name": "Editorial Journey",
+  "screenPurpose": "Narrative-first landing and guidance flow for students",
+  "platform": "responsive web",
+  "layout": { "grid": "long-form editorial bands", "spacingScale": ["space-4", "space-6", "space-8", "space-12"] },
+  "components": ["Navbar", "EditorialHero", "StorySections", "Roadmap", "Footer"],
+  "tokens": ["color-canvas", "color-elevated", "color-accent-cyan", "radius-control"],
+  "interactions": ["scroll reveal", "CTA hover", "progress fade"],
+  "accessibility": ["clear heading order", "reduced motion", "link names"],
+  "notes": "Rejected because core tools felt secondary."
+}

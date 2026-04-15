@@ -1,0 +1,38 @@
+import type { Profession, ResultRecommendation, TestResult } from '@prisma/client'
+
+const slugToCamel = (slug: string) => slug.replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
+
+export function toResultDto(
+  result: TestResult & { recommendations: Array<ResultRecommendation & { profession: Profession }> },
+) {
+  const strengths = result.strengths as Array<{ key?: string; ru?: string; en?: string }>
+  const workStyle = result.workStyle as { key?: string; ru?: string; en?: string }
+  const environment = result.preferredEnvironment as { key?: string; ru?: string; en?: string }
+  const directions = result.recommendedDirections as Array<{ key?: string; ru?: string; en?: string }>
+  const roadmap = result.roadmap as Array<{ id: string; titleKey: string; descriptionKey: string; status: 'next' | 'later' | 'done' }>
+
+  return {
+    id: result.id,
+    profileTitleKey: 'results.profileTitle',
+    summaryKey: 'results.summary',
+    summaryRu: result.aiExplanationRu ?? result.summaryRu,
+    summaryEn: result.aiExplanationEn ?? result.summaryEn,
+    strengthsKeys: strengths.map((item) => item.key ?? 'results.strengths.patterns'),
+    strengthsText: strengths,
+    workStyleKey: workStyle.key ?? 'results.workStyle',
+    workStyleText: workStyle,
+    environmentKey: environment.key ?? 'results.environment',
+    environmentText: environment,
+    directionKeys: directions.map((item) => item.key ?? 'results.directions.digitalProducts'),
+    directionsText: directions,
+    recommendations: result.recommendations.map((recommendation) => ({
+      professionId: recommendation.profession.slug,
+      matchPercent: recommendation.matchPercent,
+      reasonKey: `results.reasons.${slugToCamel(recommendation.profession.slug)}`,
+      reasonRu: recommendation.reasonRu,
+      reasonEn: recommendation.reasonEn,
+    })),
+    roadmap,
+    createdAt: result.createdAt.toISOString(),
+  }
+}

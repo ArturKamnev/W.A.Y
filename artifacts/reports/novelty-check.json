@@ -1,0 +1,11 @@
+{
+  "status": "PASS",
+  "limitation": "No historical screenshots exist in this blank workspace, so novelty is checked across candidate specs only.",
+  "candidates": [
+    "candidate-01-guided-constellation.json",
+    "candidate-02-studio-dashboard.json",
+    "candidate-03-editorial-journey.json",
+    "candidate-04-calm-lab.json",
+    "candidate-05-compass-map.json"
+  ]
+}

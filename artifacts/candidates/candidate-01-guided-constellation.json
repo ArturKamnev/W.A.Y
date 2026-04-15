@@ -1,0 +1,11 @@
+{
+  "name": "Guided Constellation",
+  "screenPurpose": "Immersive student self-discovery portal with image-backed hero and path motif",
+  "platform": "responsive web",
+  "layout": { "grid": "12-column desktop, single-column mobile", "spacingScale": ["space-2", "space-3", "space-4", "space-6", "space-8", "space-12"] },
+  "components": ["Navbar", "Hero", "ValueCards", "StepList", "CareerCard", "ChatPanel", "Footer"],
+  "tokens": ["color-canvas", "color-panel", "color-accent-cyan", "color-accent-violet", "radius-card", "shadow-panel"],
+  "interactions": ["soft route transitions", "hover lift", "test autosave feedback", "chat typing state"],
+  "accessibility": ["semantic landmarks", "visible focus states", "button labels", "contrast above WCAG AA"],
+  "notes": "Chosen candidate. Balances emotional depth with a clear MVP product structure."
+}

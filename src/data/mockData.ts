@@ -1,0 +1,268 @@
+import type {
+  ChatConversation,
+  GuideTopic,
+  Profession,
+  Question,
+  QuestionCategory,
+  RoadmapStep,
+  TestResult,
+  UserProfile,
+} from '../types/models'
+
+const optionKeys = {
+  low: 'test.options.low',
+  medium: 'test.options.medium',
+  high: 'test.options.high',
+  veryHigh: 'test.options.veryHigh',
+}
+
+const makeQuestion = (
+  id: number,
+  category: QuestionCategory,
+  promptKey: string,
+  primaryTags: string[],
+): Question => ({
+  id: `q-${id}`,
+  category,
+  promptKey,
+  options: [
+    { id: `q-${id}-a`, labelKey: optionKeys.low, value: 1, tags: [] },
+    { id: `q-${id}-b`, labelKey: optionKeys.medium, value: 2, tags: primaryTags.slice(0, 1) },
+    { id: `q-${id}-c`, labelKey: optionKeys.high, value: 3, tags: primaryTags },
+    { id: `q-${id}-d`, labelKey: optionKeys.veryHigh, value: 4, tags: primaryTags },
+  ],
+})
+
+export const mockQuestions: Question[] = [
+  makeQuestion(1, 'interests', 'test.questions.q1', ['research', 'science']),
+  makeQuestion(2, 'interests', 'test.questions.q2', ['design', 'creative']),
+  makeQuestion(3, 'interests', 'test.questions.q3', ['people', 'communication']),
+  makeQuestion(4, 'interests', 'test.questions.q4', ['systems', 'technology']),
+  makeQuestion(5, 'interests', 'test.questions.q5', ['business', 'leadership']),
+  makeQuestion(6, 'strengths', 'test.questions.q6', ['analysis', 'logic']),
+  makeQuestion(7, 'strengths', 'test.questions.q7', ['empathy', 'social']),
+  makeQuestion(8, 'strengths', 'test.questions.q8', ['visual', 'creative']),
+  makeQuestion(9, 'strengths', 'test.questions.q9', ['planning', 'operations']),
+  makeQuestion(10, 'strengths', 'test.questions.q10', ['precision', 'science']),
+  makeQuestion(11, 'workStyle', 'test.questions.q11', ['independent', 'research']),
+  makeQuestion(12, 'workStyle', 'test.questions.q12', ['teamwork', 'communication']),
+  makeQuestion(13, 'workStyle', 'test.questions.q13', ['fastPaced', 'business']),
+  makeQuestion(14, 'workStyle', 'test.questions.q14', ['deepFocus', 'technology']),
+  makeQuestion(15, 'workStyle', 'test.questions.q15', ['structure', 'operations']),
+  makeQuestion(16, 'communication', 'test.questions.q16', ['presentation', 'leadership']),
+  makeQuestion(17, 'communication', 'test.questions.q17', ['listening', 'empathy']),
+  makeQuestion(18, 'communication', 'test.questions.q18', ['writing', 'creative']),
+  makeQuestion(19, 'communication', 'test.questions.q19', ['negotiation', 'business']),
+  makeQuestion(20, 'communication', 'test.questions.q20', ['teaching', 'social']),
+  makeQuestion(21, 'logicCreativity', 'test.questions.q21', ['logic', 'technology']),
+  makeQuestion(22, 'logicCreativity', 'test.questions.q22', ['creative', 'design']),
+  makeQuestion(23, 'logicCreativity', 'test.questions.q23', ['experiments', 'science']),
+  makeQuestion(24, 'logicCreativity', 'test.questions.q24', ['strategy', 'business']),
+  makeQuestion(25, 'logicCreativity', 'test.questions.q25', ['storytelling', 'creative']),
+  makeQuestion(26, 'environment', 'test.questions.q26', ['studio', 'design']),
+  makeQuestion(27, 'environment', 'test.questions.q27', ['lab', 'science']),
+  makeQuestion(28, 'environment', 'test.questions.q28', ['digital', 'technology']),
+  makeQuestion(29, 'environment', 'test.questions.q29', ['community', 'social']),
+  makeQuestion(30, 'environment', 'test.questions.q30', ['market', 'business']),
+  makeQuestion(31, 'motivation', 'test.questions.q31', ['impact', 'social']),
+  makeQuestion(32, 'motivation', 'test.questions.q32', ['building', 'technology']),
+  makeQuestion(33, 'motivation', 'test.questions.q33', ['discovery', 'science']),
+  makeQuestion(34, 'motivation', 'test.questions.q34', ['expression', 'creative']),
+  makeQuestion(35, 'motivation', 'test.questions.q35', ['growth', 'leadership']),
+]
+
+export const mockProfessions: Profession[] = [
+  {
+    id: 'ux-designer',
+    category: 'creative',
+    titleKey: 'professions.items.uxDesigner.title',
+    descriptionKey: 'professions.items.uxDesigner.description',
+    fitTagKey: 'professions.fit.creativeSystems',
+    skillsKeys: ['skills.research', 'skills.visualThinking', 'skills.communication'],
+    details: {
+      doesKey: 'professions.items.uxDesigner.does',
+      suitsKey: 'professions.items.uxDesigner.suits',
+      skillsKeys: ['skills.research', 'skills.visualThinking', 'skills.prototyping'],
+      firstStepsKeys: ['steps.interviewPeople', 'steps.redesignApp', 'steps.learnFigma'],
+      relatedIds: ['product-manager', 'frontend-developer'],
+    },
+  },
+  {
+    id: 'frontend-developer',
+    category: 'technology',
+    titleKey: 'professions.items.frontendDeveloper.title',
+    descriptionKey: 'professions.items.frontendDeveloper.description',
+    fitTagKey: 'professions.fit.digitalBuilder',
+    skillsKeys: ['skills.logic', 'skills.interfaceDesign', 'skills.problemSolving'],
+    details: {
+      doesKey: 'professions.items.frontendDeveloper.does',
+      suitsKey: 'professions.items.frontendDeveloper.suits',
+      skillsKeys: ['skills.javascript', 'skills.accessibility', 'skills.systemsThinking'],
+      firstStepsKeys: ['steps.buildPortfolio', 'steps.learnHtmlCss', 'steps.cloneUi'],
+      relatedIds: ['ux-designer', 'data-analyst'],
+    },
+  },
+  {
+    id: 'data-analyst',
+    category: 'technology',
+    titleKey: 'professions.items.dataAnalyst.title',
+    descriptionKey: 'professions.items.dataAnalyst.description',
+    fitTagKey: 'professions.fit.patternFinder',
+    skillsKeys: ['skills.analysis', 'skills.statistics', 'skills.storytelling'],
+    details: {
+      doesKey: 'professions.items.dataAnalyst.does',
+      suitsKey: 'professions.items.dataAnalyst.suits',
+      skillsKeys: ['skills.spreadsheets', 'skills.statistics', 'skills.visualization'],
+      firstStepsKeys: ['steps.analyzeDataset', 'steps.learnSheets', 'steps.presentChart'],
+      relatedIds: ['frontend-developer', 'research-scientist'],
+    },
+  },
+  {
+    id: 'research-scientist',
+    category: 'science',
+    titleKey: 'professions.items.researchScientist.title',
+    descriptionKey: 'professions.items.researchScientist.description',
+    fitTagKey: 'professions.fit.deepResearch',
+    skillsKeys: ['skills.curiosity', 'skills.precision', 'skills.experimentation'],
+    details: {
+      doesKey: 'professions.items.researchScientist.does',
+      suitsKey: 'professions.items.researchScientist.suits',
+      skillsKeys: ['skills.method', 'skills.writing', 'skills.data'],
+      firstStepsKeys: ['steps.readPaper', 'steps.joinOlympiad', 'steps.runExperiment'],
+      relatedIds: ['data-analyst', 'medical-specialist'],
+    },
+  },
+  {
+    id: 'product-manager',
+    category: 'business',
+    titleKey: 'professions.items.productManager.title',
+    descriptionKey: 'professions.items.productManager.description',
+    fitTagKey: 'professions.fit.directionSetter',
+    skillsKeys: ['skills.strategy', 'skills.communication', 'skills.prioritization'],
+    details: {
+      doesKey: 'professions.items.productManager.does',
+      suitsKey: 'professions.items.productManager.suits',
+      skillsKeys: ['skills.strategy', 'skills.research', 'skills.leadership'],
+      firstStepsKeys: ['steps.studyProducts', 'steps.planFeature', 'steps.learnMetrics'],
+      relatedIds: ['ux-designer', 'entrepreneur'],
+    },
+  },
+  {
+    id: 'psychologist-educator',
+    category: 'social',
+    titleKey: 'professions.items.psychologistEducator.title',
+    descriptionKey: 'professions.items.psychologistEducator.description',
+    fitTagKey: 'professions.fit.peopleInsight',
+    skillsKeys: ['skills.empathy', 'skills.listening', 'skills.ethics'],
+    details: {
+      doesKey: 'professions.items.psychologistEducator.does',
+      suitsKey: 'professions.items.psychologistEducator.suits',
+      skillsKeys: ['skills.listening', 'skills.research', 'skills.boundaries'],
+      firstStepsKeys: ['steps.volunteer', 'steps.readPsychology', 'steps.practiceReflection'],
+      relatedIds: ['teacher-mentor', 'medical-specialist'],
+    },
+  },
+  {
+    id: 'teacher-mentor',
+    category: 'social',
+    titleKey: 'professions.items.teacherMentor.title',
+    descriptionKey: 'professions.items.teacherMentor.description',
+    fitTagKey: 'professions.fit.explainer',
+    skillsKeys: ['skills.teaching', 'skills.patience', 'skills.communication'],
+    details: {
+      doesKey: 'professions.items.teacherMentor.does',
+      suitsKey: 'professions.items.teacherMentor.suits',
+      skillsKeys: ['skills.teaching', 'skills.storytelling', 'skills.empathy'],
+      firstStepsKeys: ['steps.tutorFriend', 'steps.makeLesson', 'steps.presentTopic'],
+      relatedIds: ['psychologist-educator', 'product-manager'],
+    },
+  },
+  {
+    id: 'medical-specialist',
+    category: 'health',
+    titleKey: 'professions.items.medicalSpecialist.title',
+    descriptionKey: 'professions.items.medicalSpecialist.description',
+    fitTagKey: 'professions.fit.carePrecision',
+    skillsKeys: ['skills.precision', 'skills.empathy', 'skills.resilience'],
+    details: {
+      doesKey: 'professions.items.medicalSpecialist.does',
+      suitsKey: 'professions.items.medicalSpecialist.suits',
+      skillsKeys: ['skills.biology', 'skills.ethics', 'skills.focus'],
+      firstStepsKeys: ['steps.studyBiology', 'steps.shadowProfessional', 'steps.firstAid'],
+      relatedIds: ['research-scientist', 'psychologist-educator'],
+    },
+  },
+  {
+    id: 'entrepreneur',
+    category: 'business',
+    titleKey: 'professions.items.entrepreneur.title',
+    descriptionKey: 'professions.items.entrepreneur.description',
+    fitTagKey: 'professions.fit.builderLeader',
+    skillsKeys: ['skills.leadership', 'skills.sales', 'skills.problemSolving'],
+    details: {
+      doesKey: 'professions.items.entrepreneur.does',
+      suitsKey: 'professions.items.entrepreneur.suits',
+      skillsKeys: ['skills.strategy', 'skills.financialThinking', 'skills.resilience'],
+      firstStepsKeys: ['steps.findProblem', 'steps.testIdea', 'steps.pitch'],
+      relatedIds: ['product-manager', 'data-analyst'],
+    },
+  },
+]
+
+export const mockRoadmap: RoadmapStep[] = [
+  { id: 'roadmap-1', titleKey: 'results.roadmap.step1.title', descriptionKey: 'results.roadmap.step1.description', status: 'next' },
+  { id: 'roadmap-2', titleKey: 'results.roadmap.step2.title', descriptionKey: 'results.roadmap.step2.description', status: 'later' },
+  { id: 'roadmap-3', titleKey: 'results.roadmap.step3.title', descriptionKey: 'results.roadmap.step3.description', status: 'later' },
+]
+
+export const defaultResult: TestResult = {
+  id: 'result-demo',
+  profileTitleKey: 'results.profileTitle',
+  summaryKey: 'results.summary',
+  strengthsKeys: ['results.strengths.patterns', 'results.strengths.empathy', 'results.strengths.creativeSystems'],
+  workStyleKey: 'results.workStyle',
+  environmentKey: 'results.environment',
+  directionKeys: ['results.directions.digitalProducts', 'results.directions.humanResearch', 'results.directions.learningDesign'],
+  recommendations: [
+    { professionId: 'ux-designer', matchPercent: 93, reasonKey: 'results.reasons.uxDesigner' },
+    { professionId: 'frontend-developer', matchPercent: 88, reasonKey: 'results.reasons.frontendDeveloper' },
+    { professionId: 'product-manager', matchPercent: 84, reasonKey: 'results.reasons.productManager' },
+  ],
+  roadmap: mockRoadmap,
+  createdAt: new Date('2026-04-15T08:00:00.000Z').toISOString(),
+}
+
+export const guideTopics: GuideTopic[] = [
+  { id: 'lost', titleKey: 'guide.topics.lost', promptKey: 'guide.suggestions.lost' },
+  { id: 'results', titleKey: 'guide.topics.results', promptKey: 'guide.suggestions.results' },
+  { id: 'wrong', titleKey: 'guide.topics.wrong', promptKey: 'guide.suggestions.wrong' },
+  { id: 'plan', titleKey: 'guide.topics.plan', promptKey: 'guide.suggestions.plan' },
+]
+
+export const mockConversations: ChatConversation[] = [
+  {
+    id: 'conversation-1',
+    titleKey: 'guide.conversations.first.title',
+    topicId: 'lost',
+    updatedAt: new Date('2026-04-15T08:10:00.000Z').toISOString(),
+    messages: [
+      { id: 'message-1', role: 'guide', contentKey: 'guide.messages.welcome', createdAt: new Date('2026-04-15T08:10:00.000Z').toISOString() },
+      { id: 'message-2', role: 'user', contentKey: 'guide.messages.userLost', createdAt: new Date('2026-04-15T08:11:00.000Z').toISOString() },
+      { id: 'message-3', role: 'guide', contentKey: 'guide.messages.lostReply', createdAt: new Date('2026-04-15T08:12:00.000Z').toISOString() },
+    ],
+  },
+]
+
+export const demoUser: UserProfile = {
+  id: 'user-demo',
+  name: 'Amina',
+  email: 'amina@example.com',
+  grade: '10A',
+  preferredLanguage: 'en',
+  avatarUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=900&q=80',
+  avatarAltKey: 'profile.avatarAlt',
+  recentResultIds: ['result-demo'],
+  savedProfessionIds: ['ux-designer', 'frontend-developer'],
+  recentConversationIds: ['conversation-1'],
+  roadmap: mockRoadmap,
+}

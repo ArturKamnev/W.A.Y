@@ -1,0 +1,56 @@
+{
+  "$schema": "./ui-spec.schema.json",
+  "product": "W.A.Y.",
+  "version": "1.0.0",
+  "principles": [
+    "calm confidence",
+    "student-centered clarity",
+    "premium light interface",
+    "reference-inspired product frame",
+    "token-first styling",
+    "accessible motion and contrast"
+  ],
+  "tokens": {
+    "colors": {
+      "canvas": "#F5F7FB",
+      "panel": "#FFFFFF",
+      "elevated": "#F8FAFC",
+      "text": "#182334",
+      "muted": "#64748B",
+      "line": "#E0E7F1",
+      "accentCyan": "#22D3EE",
+      "accentViolet": "#8B5CF6",
+      "accentBlue": "#2563EB",
+      "success": "#10B981",
+      "warning": "#D97706"
+    },
+    "spacing": ["0", "4px", "8px", "12px", "16px", "24px", "32px", "48px", "64px", "96px"],
+    "radii": {
+      "control": "6px",
+      "card": "8px",
+      "pill": "999px"
+    },
+    "typography": {
+      "fontFamily": "Inter, ui-sans-serif, system-ui, sans-serif",
+      "letterSpacing": "0",
+      "scale": ["12px", "14px", "16px", "18px", "22px", "28px", "40px", "56px"]
+    },
+    "motion": {
+      "fast": "160ms",
+      "base": "240ms",
+      "slow": "520ms",
+      "ease": "cubic-bezier(0.22, 1, 0.36, 1)"
+    }
+  },
+  "rules": {
+    "noCardsInsideCards": true,
+    "maxButtonRadius": "8px",
+    "maxCardRadius": "8px",
+    "noNegativeLetterSpacing": true,
+    "noViewportScaledFontSize": true,
+      "mustUseImages": true,
+      "noOneHuePalette": true,
+      "lightThemeRequired": true,
+      "productFrameRequired": true
+  }
+}

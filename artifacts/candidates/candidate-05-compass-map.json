@@ -1,0 +1,11 @@
+{
+  "name": "Compass Map",
+  "screenPurpose": "Pathfinding metaphor with cards arranged around roadmap milestones",
+  "platform": "responsive web",
+  "layout": { "grid": "asymmetric map-like content bands", "spacingScale": ["space-2", "space-4", "space-8", "space-12"] },
+  "components": ["HeroMap", "MilestoneCards", "ProfessionDeck", "GuidePrompt"],
+  "tokens": ["color-canvas", "color-accent-cyan", "color-accent-blue", "radius-card"],
+  "interactions": ["milestone hover", "profession drawer", "chat chips"],
+  "accessibility": ["linear source order", "reduced motion", "alt text"],
+  "notes": "Rejected because the metaphor risks overwhelming the MVP."
+}
