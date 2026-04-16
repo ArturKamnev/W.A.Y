@@ -1,4 +1,5 @@
 from django.core.management.base import BaseCommand
+from django.db import transaction
 
 from way_api.models import Profession, TestQuestion, TestQuestionOption, User
 
@@ -53,68 +54,138 @@ QUESTION_TAGS = [
     ("motivation", ["growth", "leadership"]),
 ]
 
+QUESTION_TEXT_RU = {
+    1: "Мне интересно исследовать, как устроен мир.",
+    2: "Мне нравится придумывать визуальные идеи и решения.",
+    3: "Мне важно понимать людей и общаться с ними.",
+    4: "Мне интересно собирать системы, технологии или механизмы.",
+    5: "Мне нравится брать ответственность и вести идею вперед.",
+    6: "Мне легко замечать закономерности и делать выводы.",
+    7: "Я хорошо чувствую настроение и потребности других людей.",
+    8: "Мне нравится мыслить образами, формой и цветом.",
+    9: "Мне комфортно планировать шаги и доводить задачи до порядка.",
+    10: "Мне нравится работать точно и внимательно к деталям.",
+}
+
 
 class Command(BaseCommand):
     help = "Seed W.A.Y. demo professions, questions, and local users."
 
     def handle(self, *args, **options):
-        for slug, title_ru, title_en, description_ru, description_en, category, skills, fit_tags, scoring_tags in PROFESSIONS:
-            Profession.objects.update_or_create(
-                slug=slug,
-                defaults={
-                    "title_ru": title_ru,
-                    "title_en": title_en,
-                    "description_ru": description_ru,
-                    "description_en": description_en,
-                    "category": category,
-                    "skills": skills,
-                    "fit_tags": fit_tags,
-                    "details": {"skills": skills, "firstSteps": [], "relatedIds": []},
-                    "scoring_tags": scoring_tags,
-                },
+        with transaction.atomic():
+            self.stdout.write("Seeding professions...")
+            Profession.objects.bulk_create(
+                [
+                    Profession(
+                        slug=slug,
+                        title_ru=title_ru,
+                        title_en=title_en,
+                        description_ru=description_ru,
+                        description_en=description_en,
+                        category=category,
+                        skills=skills,
+                        fit_tags=fit_tags,
+                        details={"skills": skills, "firstSteps": [], "relatedIds": []},
+                        scoring_tags=scoring_tags,
+                    )
+                    for slug, title_ru, title_en, description_ru, description_en, category, skills, fit_tags, scoring_tags in PROFESSIONS
+                ],
+                update_conflicts=True,
+                unique_fields=["slug"],
+                update_fields=[
+                    "title_ru",
+                    "title_en",
+                    "description_ru",
+                    "description_en",
+                    "category",
+                    "skills",
+                    "fit_tags",
+                    "details",
+                    "scoring_tags",
+                ],
             )
 
-        for index, (category, tags) in enumerate(QUESTION_TAGS, start=1):
-            question, _ = TestQuestion.objects.update_or_create(
-                sort_order=index,
-                defaults={
-                    "category": category,
-                    "text_ru": f"Вопрос {index}",
-                    "text_en": f"Question {index}",
-                },
+            self.stdout.write("Seeding career-test questions...")
+            TestQuestion.objects.bulk_create(
+                [
+                    TestQuestion(
+                        sort_order=index,
+                        category=category,
+                        text_ru=QUESTION_TEXT_RU.get(index, f"Утверждение {index}"),
+                        text_en=f"Question {index}",
+                    )
+                    for index, (category, _tags) in enumerate(QUESTION_TAGS, start=1)
+                ],
+                update_conflicts=True,
+                unique_fields=["sort_order"],
+                update_fields=["category", "text_ru", "text_en"],
             )
-            options = [
-                ("Не очень про меня", "Not really me", 1, []),
-                ("Иногда верно", "Sometimes true", 2, tags[:1]),
-                ("Часто верно", "Often true", 3, tags),
-                ("Очень про меня", "Very much me", 4, tags),
-            ]
-            for option_index, (label_ru, label_en, value, option_tags) in enumerate(options, start=1):
-                TestQuestionOption.objects.update_or_create(
-                    question=question,
-                    sort_order=option_index,
-                    defaults={
-                        "label_ru": label_ru,
-                        "label_en": label_en,
-                        "value": value,
-                        "scoring_payload": {"tags": option_tags},
-                    },
+
+            questions_by_order = {question.sort_order: question for question in TestQuestion.objects.filter(sort_order__in=range(1, len(QUESTION_TAGS) + 1))}
+            option_rows = []
+            for index, (_category, tags) in enumerate(QUESTION_TAGS, start=1):
+                question = questions_by_order[index]
+                options = [
+                    ("Не очень про меня", "Not really me", 1, []),
+                    ("Иногда верно", "Sometimes true", 2, tags[:1]),
+                    ("Часто верно", "Often true", 3, tags),
+                    ("Очень про меня", "Very much me", 4, tags),
+                ]
+                option_rows.extend(
+                    TestQuestionOption(
+                        question=question,
+                        sort_order=option_index,
+                        label_ru=label_ru,
+                        label_en=label_en,
+                        value=value,
+                        scoring_payload={"tags": option_tags},
+                    )
+                    for option_index, (label_ru, label_en, value, option_tags) in enumerate(options, start=1)
                 )
+            TestQuestionOption.objects.bulk_create(
+                option_rows,
+                update_conflicts=True,
+                unique_fields=["question", "sort_order"],
+                update_fields=["label_ru", "label_en", "value", "scoring_payload"],
+            )
 
-        User.objects.update_or_create(
-            email="admin@way.local",
-            defaults={"name": "W.A.Y. Admin", "role": User.Role.ADMIN, "is_staff": True, "grade_or_age": "Production 10A"},
-        )
-        admin = User.objects.get(email="admin@way.local")
-        admin.set_password("Admin12345!")
-        admin.save()
-
-        User.objects.update_or_create(
-            email="student@way.local",
-            defaults={"name": "Амина", "role": User.Role.USER, "grade_or_age": "10A", "preferred_language": "ru"},
-        )
-        student = User.objects.get(email="student@way.local")
-        student.set_password("Student12345!")
-        student.save()
+            self.stdout.write("Seeding demo users...")
+            self._upsert_user(
+                email="admin@way.local",
+                password="Admin12345!",
+                name="W.A.Y. Admin",
+                role=User.Role.ADMIN,
+                grade_or_age="Production 10A",
+                preferred_language="ru",
+                is_staff=True,
+                is_superuser=True,
+            )
+            self._upsert_user(
+                email="student@way.local",
+                password="Student12345!",
+                name="Амина",
+                role=User.Role.USER,
+                grade_or_age="10A",
+                preferred_language="ru",
+                is_staff=False,
+                is_superuser=False,
+            )
 
         self.stdout.write(self.style.SUCCESS("Seed complete."))
+
+    def _upsert_user(self, *, email, password, name, role, grade_or_age, preferred_language, is_staff, is_superuser):
+        user, _created = User.objects.update_or_create(
+            email=email,
+            defaults={
+                "username": email,
+                "name": name,
+                "role": role,
+                "grade_or_age": grade_or_age,
+                "preferred_language": preferred_language,
+                "is_active": True,
+                "is_staff": is_staff,
+                "is_superuser": is_superuser,
+            },
+        )
+        user.set_password(password)
+        user.save(update_fields=["password", "updated_at"])

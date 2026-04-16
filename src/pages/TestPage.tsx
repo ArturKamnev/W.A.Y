@@ -11,23 +11,48 @@ export function TestPage() {
   const navigate = useNavigate()
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingError, setLoadingError] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState('')
   const session = useAuthStore((state) => state.session)
-  const { answers, currentIndex, lastSavedAt, setAnswer, setCurrentIndex, resetTest } = useTestStore()
+  const { answers, currentIndex, lastSavedAt, setAnswer, setCurrentIndex, resetTest, replaceAnswers } = useTestStore()
   const setLatestResult = useSavedItemsStore((state) => state.setLatestResult)
 
   useEffect(() => {
-    let active = true
-    repositories.questions.getQuestions().then((items) => {
+  let active = true
+
+  repositories.questions
+    .getQuestions()
+    .then((items) => {
       if (!active) return
+
       setQuestions(items)
+
+      const validQuestionMap = new Map(items.map((question) => [question.id, question]))
+      const cleanedAnswers = Object.fromEntries(
+        Object.entries(answers).filter(([questionId, answer]) => {
+          const question = validQuestionMap.get(questionId)
+          if (!question) return false
+          return question.options.some((option) => option.id === answer.optionId)
+        }),
+      )
+
+      if (Object.keys(cleanedAnswers).length !== Object.keys(answers).length) {
+        replaceAnswers(cleanedAnswers)
+      }
+
       setLoading(false)
     })
-    return () => {
-      active = false
-    }
-  }, [])
+    .catch(() => {
+      if (!active) return
+      setQuestions([])
+      setLoading(false)
+    })
+
+  return () => {
+    active = false
+  }
+}, [answers, replaceAnswers])
 
   const currentQuestion = questions[currentIndex]
   const selectedOptionId = currentQuestion ? answers[currentQuestion.id]?.optionId : undefined
@@ -39,31 +64,59 @@ export function TestPage() {
   }
 
   const finish = async () => {
-    if (!session) {
-      navigate('/login')
-      return
-    }
-    setSubmitting(true)
-    setSubmitError('')
-    try {
-      const result = await repositories.results.submitTest({
-        answers: Object.values(answers),
-        completedAt: new Date().toISOString(),
-      })
-      setLatestResult(result)
-      resetTest()
-      navigate('/results', { replace: true })
-    } catch (error) {
-      setSubmitError(error instanceof Error ? error.message : t('common.empty'))
-    } finally {
-      setSubmitting(false)
-    }
+  if (!session) {
+    navigate('/login')
+    return
   }
 
-  if (loading || !currentQuestion) {
+  setSubmitting(true)
+  setSubmitError('')
+
+  try {
+    const validQuestionMap = new Map(questions.map((question) => [question.id, question]))
+
+    const validAnswers = Object.values(answers).filter((answer) => {
+      const question = validQuestionMap.get(answer.questionId)
+      if (!question) return false
+      return question.options.some((option) => option.id === answer.optionId)
+    })
+
+    if (!validAnswers.length) {
+      setSubmitError('Ответы устарели. Пожалуйста, пройдите тест заново.')
+      resetTest()
+      navigate('/test', { replace: true })
+      return
+    }
+
+    const result = await repositories.results.submitTest({
+      answers: validAnswers,
+      completedAt: new Date().toISOString(),
+    })
+
+    setLatestResult(result)
+    resetTest()
+    navigate('/results', { replace: true })
+  } catch (error) {
+    setSubmitError(error instanceof Error ? error.message : t('common.empty'))
+  } finally {
+    setSubmitting(false)
+  }
+  } 
+
+  if (loading) {
     return (
       <Section eyebrow={t('test.eyebrow')} title={t('test.title')}>
         <LoadingState label={t('common.loading')} />
+      </Section>
+    )
+  }
+
+  if (loadingError || !currentQuestion) {
+    return (
+      <Section eyebrow={t('test.eyebrow')} title={t('test.title')} lead={loadingError || t('common.empty')}>
+        <Button type="button" onClick={() => window.location.reload()}>
+          {t('common.retry')}
+        </Button>
       </Section>
     )
   }

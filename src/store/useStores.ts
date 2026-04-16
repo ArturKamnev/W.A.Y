@@ -25,6 +25,7 @@ interface TestState {
   setCurrentIndex: (index: number) => void
   setAnswer: (answer: TestAnswer) => void
   resetTest: () => void
+  replaceAnswers: (answers: Record<string, TestAnswer>) => void
 }
 
 interface SavedItemsState {
@@ -88,10 +89,15 @@ export const useTestStore = create<TestState>()(
           },
           lastSavedAt: new Date().toISOString(),
         })),
+      replaceAnswers: (answers) =>
+        set({
+          answers,
+          lastSavedAt: Object.keys(answers).length ? new Date().toISOString() : null,
+        }),
       resetTest: () => set({ currentIndex: 0, answers: {}, lastSavedAt: null }),
     }),
     {
-      name: 'way.test-progress.v1',
+      name: 'way.test-progress.v2',
       partialize: (state) => ({
         currentIndex: state.currentIndex,
         answers: state.answers,
@@ -100,7 +106,6 @@ export const useTestStore = create<TestState>()(
     },
   ),
 )
-
 export const useSavedItemsStore = create<SavedItemsState>()(
   persist(
     (set, get) => ({

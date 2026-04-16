@@ -13,21 +13,26 @@ export function GuidePage() {
   const [topics, setTopics] = useState<GuideTopic[]>([])
   const [draft, setDraft] = useState('')
   const [typing, setTyping] = useState(false)
+  const [error, setError] = useState('')
   const session = useAuthStore((state) => state.session)
   const { conversations, activeConversationId, setConversations, setActiveConversationId, appendMessages } = useGuideStore()
 
   useEffect(() => {
     if (!session && repositories.mode === 'api') return
     let active = true
-    Promise.all([repositories.guide.listTopics(), repositories.guide.listConversations()]).then(([topicItems, conversationItems]) => {
-      if (!active) return
-      setTopics(topicItems)
-      if (repositories.mode === 'api' || !conversations.length) setConversations(conversationItems)
-    })
+    Promise.all([repositories.guide.listTopics(), repositories.guide.listConversations()])
+      .then(([topicItems, conversationItems]) => {
+        if (!active) return
+        setTopics(topicItems)
+        if (repositories.mode === 'api' || !conversations.length) setConversations(conversationItems)
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : t('common.empty'))
+      })
     return () => {
       active = false
     }
-  }, [conversations.length, session, setConversations])
+  }, [conversations.length, session, setConversations, t])
 
   const activeConversation = useMemo(
     () => conversations.find((conversation) => conversation.id === activeConversationId) ?? conversations[0],
@@ -41,9 +46,15 @@ export function GuidePage() {
     if (!activeConversation) setConversations([conversation])
     setDraft('')
     setTyping(true)
-    const messages = await repositories.guide.sendMessage(conversation.id, content.trim())
-    appendMessages(conversation.id, [messages.user, messages.guide])
-    setTyping(false)
+    setError('')
+    try {
+      const messages = await repositories.guide.sendMessage(conversation.id, content.trim())
+      appendMessages(conversation.id, [messages.user, messages.guide])
+    } catch (sendError) {
+      setError(sendError instanceof Error ? sendError.message : t('common.empty'))
+    } finally {
+      setTyping(false)
+    }
   }
 
   const handleSubmit = (event: FormEvent) => {
@@ -115,6 +126,7 @@ export function GuidePage() {
               {t('guide.send')}
             </Button>
           </form>
+          {error ? <p className="field__error">{error}</p> : null}
         </Card>
       </div>
     </Section>

@@ -42,6 +42,11 @@ class IsAdminRole(permissions.BasePermission):
         return bool(request.user and request.user.is_authenticated and request.user.role == User.Role.ADMIN)
 
 
+class PublicAPIView(APIView):
+    authentication_classes = []
+    permission_classes = [permissions.AllowAny]
+
+
 def session_for(user):
     token = RefreshToken.for_user(user)
     return {
@@ -52,7 +57,7 @@ def session_for(user):
     }
 
 
-class SignupView(APIView):
+class SignupView(PublicAPIView):
     def post(self, request):
         serializer = SignupSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -69,20 +74,19 @@ class SignupView(APIView):
         return Response(session_for(user), status=status.HTTP_201_CREATED)
 
 
-class LoginView(APIView):
+class LoginView(PublicAPIView):
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         data = serializer.validated_data
-        user = User.objects.filter(email=data["identifier"].lower(), is_active=True).first()
+        identifier = data["identifier"].strip().lower()
+        user = User.objects.filter(Q(email__iexact=identifier) | Q(username__iexact=identifier), is_active=True).first()
         if not user or not user.check_password(data["password"]):
             return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(session_for(user))
 
 
-class LogoutView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
+class LogoutView(PublicAPIView):
     def post(self, _request):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -94,7 +98,7 @@ class MeView(APIView):
         return Response({"user": public_user(request.user)})
 
 
-class QuestionListView(APIView):
+class QuestionListView(PublicAPIView):
     def get(self, _request):
         questions = TestQuestion.objects.prefetch_related("options").order_by("sort_order")
         return Response(QuestionSerializer(questions, many=True).data)
@@ -119,9 +123,29 @@ class TestSubmitView(APIView):
 
             selected_options = []
             for answer in answers:
-                option = TestQuestionOption.objects.filter(id=answer.get("optionId"), question_id=answer.get("questionId")).first()
+                question_id = answer.get("questionId")
+                option_id = answer.get("optionId")
+
+                try:
+                    question_id = int(question_id)
+                    option_id = int(option_id)
+                except (TypeError, ValueError):
+                    return Response(
+                        {"message": "Invalid questionId or optionId"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
+                option = TestQuestionOption.objects.filter(
+                    id=option_id,
+                    question_id=question_id,
+                ).first()
+
                 if not option:
-                    continue
+                    return Response(
+                        {"message": "Question option not found"},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+
                 selected_options.append(option)
                 TestAnswer.objects.update_or_create(
                     attempt=attempt,
@@ -195,7 +219,7 @@ class ResultDetailView(APIView):
         return Response(ResultSerializer(result).data)
 
 
-class ProfessionListView(APIView):
+class ProfessionListView(PublicAPIView):
     def get(self, request):
         queryset = Profession.objects.all()
         category = request.query_params.get("category")
@@ -217,7 +241,7 @@ class SavedProfessionListView(APIView):
         return Response(ProfessionSerializer([item.profession for item in saved], many=True).data)
 
 
-class ProfessionDetailView(APIView):
+class ProfessionDetailView(PublicAPIView):
     def get(self, _request, slug):
         profession = Profession.objects.filter(slug=slug).first()
         if not profession:
@@ -382,7 +406,9 @@ class AdminUserStatusView(APIView):
     permission_classes = [IsAdminRole]
 
     def patch(self, request, user_id):
-        user = User.objects.get(id=user_id)
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         user.is_active = bool(request.data.get("isActive"))
         user.save(update_fields=["is_active"])
         AdminAuditLog.objects.create(admin_user=request.user, action="user.status", target_user=user, metadata={"isActive": user.is_active})
@@ -393,7 +419,9 @@ class AdminUserRoleView(APIView):
     permission_classes = [IsAdminRole]
 
     def patch(self, request, user_id):
-        user = User.objects.get(id=user_id)
+        user = User.objects.filter(id=user_id).first()
+        if not user:
+            return Response({"message": "User not found"}, status=status.HTTP_404_NOT_FOUND)
         if request.data.get("role") in ["user", "admin"]:
             user.role = request.data["role"]
             user.is_staff = user.role == "admin"

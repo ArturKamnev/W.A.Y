@@ -45,7 +45,7 @@ class SignupSerializer(serializers.Serializer):
 
 
 class LoginSerializer(serializers.Serializer):
-    identifier = serializers.EmailField()
+    identifier = serializers.CharField(min_length=3, max_length=254)
     password = serializers.CharField(min_length=1, max_length=128)
 
 
@@ -141,6 +141,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 
 class ResultSerializer(serializers.ModelSerializer):
+    id = serializers.CharField()
     profileTitleKey = serializers.SerializerMethodField()
     summaryKey = serializers.SerializerMethodField()
     summaryRu = serializers.SerializerMethodField()

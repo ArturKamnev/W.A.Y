@@ -10,10 +10,14 @@ load_dotenv(BASE_DIR / ".env")
 
 SECRET_KEY = os.getenv("DJANGO_SECRET_KEY", os.getenv("JWT_SECRET", "dev-only-change-me"))
 DEBUG = os.getenv("DJANGO_DEBUG", "true").lower() == "true"
-ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",")]
+ALLOWED_HOSTS = [host.strip() for host in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if host.strip()]
 if DEBUG and "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
-CLIENT_URL = os.getenv("CLIENT_URL", "http://localhost:5173")
+CLIENT_URLS = [
+    origin.strip()
+    for origin in os.getenv("CLIENT_URLS", os.getenv("CLIENT_URL", "http://localhost:5173,http://localhost:4173")).split(",")
+    if origin.strip()
+]
 
 INSTALLED_APPS = [
     "django.contrib.auth",
@@ -45,6 +49,9 @@ ASGI_APPLICATION = "way_backend.asgi.application"
 DATABASE_URL = os.getenv("DATABASE_URL")
 if DATABASE_URL:
     DATABASES = {"default": dj_database_url.parse(DATABASE_URL, conn_max_age=600)}
+    DATABASES["default"].setdefault("OPTIONS", {})
+    if DATABASES["default"]["ENGINE"].endswith("postgresql"):
+        DATABASES["default"]["OPTIONS"].setdefault("connect_timeout", 5)
 else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 
@@ -63,8 +70,9 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
-CORS_ALLOWED_ORIGINS = [CLIENT_URL]
+CORS_ALLOWED_ORIGINS = CLIENT_URLS
 CORS_ALLOW_CREDENTIALS = False
+CSRF_TRUSTED_ORIGINS = CLIENT_URLS
 
 LANGUAGE_CODE = "ru"
 TIME_ZONE = "Asia/Almaty"

@@ -14,6 +14,7 @@ export function AdminPage() {
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<'all' | 'user' | 'admin'>('all')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const canAdmin = session?.user.role === 'admin'
 
@@ -26,8 +27,12 @@ export function AdminPage() {
     ])
       .then(([nextStats, nextUsers]) => {
         if (!active) return
+        setError('')
         setStats(nextStats)
         setUsers(nextUsers)
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : t('common.empty'))
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -35,7 +40,7 @@ export function AdminPage() {
     return () => {
       active = false
     }
-  }, [canAdmin, role, search])
+  }, [canAdmin, role, search, t])
 
   const statCards = useMemo(
     () =>
@@ -86,6 +91,7 @@ export function AdminPage() {
   return (
     <Section eyebrow={t('admin.eyebrow')} title={t('admin.title')} lead={t('admin.lead')}>
       {loading && !stats ? <LoadingState label={t('common.loading')} /> : null}
+      {error ? <p className="field__error">{error}</p> : null}
 
       {stats ? (
         <div className="grid grid--3 admin-stats">

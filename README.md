@@ -52,6 +52,7 @@ DJANGO_DEBUG=true
 DJANGO_SECRET_KEY=replace_with_a_long_random_secret
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/way
 CLIENT_URL=http://localhost:5173
+CLIENT_URLS=http://localhost:5173,http://localhost:4173
 ALLOWED_HOSTS=localhost,127.0.0.1
 GROQ_API_KEY=change_me
 GROQ_MODEL=openai/gpt-oss-120b
@@ -140,6 +141,64 @@ Authentication uses SimpleJWT. Private routes require `Authorization: Bearer <to
 
 The Django schema includes users, professions, test questions/options, attempts, answers, results, result recommendations, saved professions, guide conversations/messages, and admin audit logs.
 
+## Auth Contract
+
+Login accepts JSON:
+
+```json
+{
+  "identifier": "admin@way.local",
+  "password": "Admin12345!"
+}
+```
+
+Successful login/signup returns:
+
+```json
+{
+  "user": {},
+  "token": "jwt-access-token",
+  "refreshToken": "jwt-refresh-token",
+  "expiresAt": "2026-04-23T00:00:00+06:00"
+}
+```
+
+Public endpoints use anonymous DRF views with authentication disabled, so a stale browser token cannot poison them:
+
+- `POST /api/auth/signup`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/test/questions`
+- `GET /api/professions`
+- `GET /api/professions/:slug`
+
+Private endpoints require a valid bearer token:
+
+- `GET /api/auth/me`
+- `POST /api/test/submit`
+- `GET /api/test/results/latest`
+- `GET /api/test/results/:id`
+- `GET /api/professions/saved`
+- `POST /api/professions/save`
+- `DELETE /api/professions/save/:id`
+- `GET /api/profile`
+- `PATCH /api/profile`
+- guide conversation/message endpoints
+- admin endpoints
+
+The frontend API client now marks every request as `auth: 'none'` or `auth: 'required'`. Public calls never attach `Authorization`. Required calls validate the persisted Zustand session before sending the request. If a token is missing, malformed, expired, or rejected with `401`, `way.auth.v1` is cleared and a `way:auth-expired` event resets the app session. Logout always clears local session state even if the server call cannot complete.
+
+## seed_way
+
+`python manage.py seed_way` is idempotent. It bulk-upserts professions, questions, and answer options, then recreates the demo credentials with valid Django password hashes every run:
+
+```text
+admin@way.local / Admin12345!
+student@way.local / Student12345!
+```
+
+PostgreSQL connections use a short `connect_timeout` so a bad `DATABASE_URL` fails quickly instead of hanging indefinitely.
+
 ## Career-Test Result Pipeline
 
 The result system is deterministic first and AI-assisted second.
@@ -213,10 +272,12 @@ The custom 404 page also uses text-only animated ASCII with a full-screen cinema
 
 The frontend keeps the repository architecture:
 
-- `src/services/apiClient.ts` centralizes base URL, JSON handling, DRF error handling, and bearer-token injection
+- `src/services/apiClient.ts` centralizes base URL, JSON handling, DRF error handling, explicit auth modes, bearer-token injection, and stale-token recovery
 - `src/services/apiRepositories.ts` maps frontend models to the Django API contract
 - `src/services/repositories.ts` can still switch to mock services with `VITE_USE_MOCK_API=true`
 - Zustand persists auth, language, theme, latest result, saved professions, guide conversations, and test progress
+
+Backend-powered pages now handle failed or expired sessions without endless loading states. Public question/profession loads remain usable after a bad token; private profile, guide, result, and admin flows recover by clearing broken auth state and returning the user to a safe login-required state.
 
 ## Russian-First UX
 

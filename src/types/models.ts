@@ -149,6 +149,7 @@ export interface UserProfile {
 export interface AuthSession {
   user: UserProfile
   token: string
+  refreshToken?: string
   expiresAt: string
 }
 

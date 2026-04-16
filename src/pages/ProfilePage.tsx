@@ -13,6 +13,7 @@ export function ProfilePage() {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [professions, setProfessions] = useState<Profession[]>([])
   const [latestResult, setLatestResult] = useState<TestResult | null>(null)
+  const [error, setError] = useState('')
   const session = useAuthStore((state) => state.session)
   const savedIds = useSavedItemsStore((state) => state.savedProfessionIds)
   const storedResult = useSavedItemsStore((state) => state.latestResult)
@@ -26,16 +27,21 @@ export function ProfilePage() {
       repositories.professions.listProfessions(),
       repositories.results.getLatestResult().catch(() => storedResult),
       repositories.guide.listConversations().catch(() => conversations),
-    ]).then(([profileData, professionData, resultData]) => {
-      if (!active) return
-      setProfile(profileData)
-      setProfessions(professionData)
-      setLatestResult(storedResult ?? resultData)
-    })
+    ])
+      .then(([profileData, professionData, resultData]) => {
+        if (!active) return
+        setError('')
+        setProfile(profileData)
+        setProfessions(professionData)
+        setLatestResult(storedResult ?? resultData)
+      })
+      .catch((loadError) => {
+        if (active) setError(loadError instanceof Error ? loadError.message : t('common.empty'))
+      })
     return () => {
       active = false
     }
-  }, [conversations, session, storedResult])
+  }, [conversations, session, storedResult, t])
 
   const savedProfessions = useMemo(() => {
     const ids = new Set([...(profile?.savedProfessionIds ?? []), ...savedIds])
@@ -50,6 +56,10 @@ export function ProfilePage() {
         </Link>
       </Section>
     )
+  }
+
+  if (error) {
+    return <Section eyebrow={t('profile.eyebrow')} title={t('profile.title')} lead={error} />
   }
 
   if (!profile) {

@@ -25,12 +25,21 @@ export function AppLayout() {
     document.documentElement.style.colorScheme = theme
   }, [theme])
 
+  useEffect(() => {
+    const clearSession = () => setSession(null)
+    window.addEventListener('way:auth-expired', clearSession)
+    return () => window.removeEventListener('way:auth-expired', clearSession)
+  }, [setSession])
+
   const navRoutes = routes.filter((route) => route.showInNav)
 
   const handleSignOut = async () => {
-    await repositories.auth.signOut()
-    setSession(null)
-    setOpen(false)
+    try {
+      await repositories.auth.signOut()
+    } finally {
+      setSession(null)
+      setOpen(false)
+    }
   }
 
   return (
