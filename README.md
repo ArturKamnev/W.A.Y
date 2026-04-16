@@ -11,7 +11,7 @@ The React + TypeScript + Vite SPA has been retired from the active project. Djan
 - Database: PostgreSQL-ready Django ORM models, with SQLite fallback when `DATABASE_URL` is not set
 - AI: Groq OpenAI-compatible chat completions from the Django server only
 - Static assets: Django static files in `server/static/way/`
-- UX: light/dark theme tokens, animated ASCII W.A.Y. logo, custom 404, small vanilla JavaScript
+- UX: light/dark theme tokens, RU/EN/KG language switching, animated ASCII W.A.Y. logo, custom 404, small TypeScript-enhanced JavaScript
 
 ## Project Structure
 
@@ -50,8 +50,10 @@ server/
     admin/                      product admin templates
   static/way/
     css/app.css                 design tokens, layout, components, responsive styles
-    js/app.js                   theme toggle, nav, landing slides, reveal motion, ASCII mutation, guide AJAX, test progress
+    js/app.js                   compiled enhancement layer
     img/                        logo and favicon
+  static_src/way/
+    app.ts                      TypeScript source for theme, language, nav, motion, ASCII, guide AJAX, test progress
 ```
 
 ## Environment
@@ -83,6 +85,13 @@ python manage.py runserver 4000
 ```
 
 Open `http://localhost:4000`.
+
+Build the small TypeScript enhancement layer after changing `server/static_src/way/app.ts`:
+
+```bash
+npm install
+npm run build:ui
+```
 
 PostgreSQL Docker example:
 
@@ -168,13 +177,25 @@ Saved professions appear on the profile page.
 
 Light/dark mode is implemented with CSS tokens in `server/static/way/css/app.css`.
 
-The theme switcher in `base.html` uses a small vanilla JS controller:
+The theme switcher in `base.html` uses a small TypeScript-compiled controller:
 
 - toggles `document.documentElement.dataset.theme`
 - persists the selection in `localStorage`
 - applies early in the document head to avoid visual flashing
 
 The palette preserves the W.A.Y. product feel: cool off-white surfaces and refined accents in light mode, deep graphite/navy surfaces with controlled cyan/blue/violet glow in dark mode.
+
+## Language Switcher and Kyrgyz Support
+
+The header includes a compact premium language switcher for:
+
+- Russian (`ru`)
+- English (`en`)
+- Kyrgyz (`ky`)
+
+Language changes post to `/language/` with CSRF protection, persist in the Django session, and update `User.preferred_language` for authenticated users. Russian remains the first-run default.
+
+User-facing category, skill, tag, profession, and navigation labels are localized through `way_api/i18n.py` and template filters in `way_api/templatetags/way_extras.py`. Raw catalog identifiers such as `technology`, `leadership`, or `sales` are not rendered directly in the template UI; chips and badges use localized display labels.
 
 ## Homepage Slide Navigation
 
@@ -190,9 +211,30 @@ The design restoration is concentrated in `server/static/way/css/app.css`:
 - restored card hover lift and glow depth
 - polished button transitions and focus states
 - premium pill/tag treatment with consistent sizing, border, background, and typography
+- language switcher styling that matches the header controls
 - section/card reveal animation through a small IntersectionObserver helper
 - active homepage slide reveal choreography
 - responsive navigation that keeps the hamburger hidden on desktop and only shows it on smaller breakpoints
+
+## Responsive Navigation
+
+Desktop renders the full navigation and hides the hamburger with an explicit desktop breakpoint rule. Under the tablet/mobile breakpoint, the hamburger opens a focused drawer containing navigation, language, theme, and auth controls. The drawer closes after navigation link activation and keeps keyboard/focus states accessible.
+
+## TypeScript Enhancement Layer
+
+Django Templates remain the rendering system. TypeScript is used only for focused client-side enhancement:
+
+- theme persistence and toggle animation
+- language switcher auto-submit
+- mobile menu open/close behavior
+- homepage wheel-slide navigation
+- section/card reveal motion
+- ASCII logo character mutation
+- typed 404 subtitle rotation
+- career-test progress bar
+- guide chat AJAX with normal POST fallback
+
+Source lives in `server/static_src/way/app.ts`; compiled output is `server/static/way/js/app.js`.
 
 ## ASCII Logo and 404
 
@@ -221,6 +263,8 @@ cd server
 python manage.py check
 python -m compileall way_backend way_api
 python manage.py seed_way
+cd ..
+npm run build:ui
 ```
 
 The template migration has been smoke-tested with Django’s test client for:
