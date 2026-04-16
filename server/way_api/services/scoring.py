@@ -89,6 +89,24 @@ CATEGORY_WEIGHTS = {
     "health": {"helpingPeople": 0.7, "structure": 0.65, "researchOrientation": 0.45},
 }
 
+TRAIT_LABELS.update(
+    {
+        "logic": {"key": "results.traits.logic", "ru": "Логическое мышление", "en": "Logical thinking"},
+        "analyticalThinking": {"key": "results.traits.analyticalThinking", "ru": "Аналитическое мышление", "en": "Analytical thinking"},
+        "creativity": {"key": "results.traits.creativity", "ru": "Креативность", "en": "Creativity"},
+        "communication": {"key": "results.traits.communication", "ru": "Коммуникация", "en": "Communication"},
+        "technicalInterest": {"key": "results.traits.technicalInterest", "ru": "Интерес к технологиям", "en": "Technical interest"},
+        "helpingPeople": {"key": "results.traits.helpingPeople", "ru": "Помощь людям", "en": "Helping people"},
+        "structure": {"key": "results.traits.structure", "ru": "Структурность", "en": "Structure"},
+        "teamwork": {"key": "results.traits.teamwork", "ru": "Командная работа", "en": "Teamwork"},
+        "independence": {"key": "results.traits.independence", "ru": "Самостоятельность", "en": "Independence"},
+        "visualInterest": {"key": "results.traits.visualInterest", "ru": "Визуальное мышление", "en": "Visual thinking"},
+        "researchOrientation": {"key": "results.traits.researchOrientation", "ru": "Исследовательский интерес", "en": "Research orientation"},
+        "leadership": {"key": "results.traits.leadership", "ru": "Лидерство", "en": "Leadership"},
+        "organization": {"key": "results.traits.organization", "ru": "Организация", "en": "Organization"},
+    }
+)
+
 
 @dataclass
 class RankedProfession:

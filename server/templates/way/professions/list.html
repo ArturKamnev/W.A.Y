@@ -1,0 +1,50 @@
+{% extends "way/base.html" %}
+{% block title %}Профессии — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Каталог</p>
+    <h1 class="title">Профессии W.A.Y.</h1>
+    <p class="lead">Все рекомендации теста выбираются только из этого каталога.</p>
+    <form class="filter-row" method="get" style="margin-top:1.5rem">
+      <input class="input" style="max-width:28rem" name="query" value="{{ query }}" placeholder="Поиск по профессии">
+      <select class="select" style="max-width:14rem" name="category">
+        <option value="all">Все</option>
+        <option value="technology" {% if category == 'technology' %}selected{% endif %}>Technology</option>
+        <option value="creative" {% if category == 'creative' %}selected{% endif %}>Creative</option>
+        <option value="science" {% if category == 'science' %}selected{% endif %}>Science</option>
+        <option value="business" {% if category == 'business' %}selected{% endif %}>Business</option>
+        <option value="social" {% if category == 'social' %}selected{% endif %}>Social</option>
+        <option value="health" {% if category == 'health' %}selected{% endif %}>Health</option>
+      </select>
+      <button class="button button--secondary" type="submit">Найти</button>
+    </form>
+    <div class="grid grid--3" style="margin-top:2rem">
+      {% for profession in professions %}
+        <article class="card profession-card">
+          <span class="badge">{{ profession.category }}</span>
+          <h3>{{ profession.title_ru }}</h3>
+          <p>{{ profession.description_ru }}</p>
+          <div class="tag-list">
+            {% for skill in profession.skills %}
+              <span class="badge">{{ skill }}</span>
+            {% endfor %}
+          </div>
+          <div class="page-actions">
+            <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">Подробнее</a>
+            {% if request.user.is_authenticated %}
+              <form method="post" action="{% url 'web:toggle_profession' profession.slug %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                <button class="button button--ghost" type="submit">{% if profession.slug in saved_ids %}Убрать{% else %}Сохранить{% endif %}</button>
+              </form>
+            {% endif %}
+          </div>
+        </article>
+      {% empty %}
+        <div class="card value-card"><p>Ничего не найдено.</p></div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endblock %}

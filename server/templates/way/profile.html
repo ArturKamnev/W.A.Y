@@ -1,0 +1,65 @@
+{% extends "way/base.html" %}
+{% block title %}Профиль — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Профиль</p>
+    <h1 class="title">{{ request.user.name }}</h1>
+    <p class="lead">{{ request.user.email }}</p>
+    <div class="profile-layout" style="margin-top:2rem">
+      <aside class="grid">
+        <div class="card profile-panel">
+          <h3>Настройки</h3>
+          <form class="form" method="post">
+            {% csrf_token %}
+            {% for field in form %}
+              <div class="field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+              </div>
+            {% endfor %}
+            <button class="button button--primary" type="submit">Сохранить</button>
+          </form>
+        </div>
+      </aside>
+      <div class="grid">
+        <div class="card profile-panel">
+          <h3>Последний результат</h3>
+          {% if latest %}
+            <p>{{ latest.ai_explanation_ru|default:latest.summary_ru }}</p>
+            <a class="button button--secondary" href="{% url 'web:result_detail' latest.id %}">Открыть результат</a>
+          {% else %}
+            <p>Результата пока нет.</p>
+            <a class="button button--primary" href="{% url 'web:test' %}">Пройти тест</a>
+          {% endif %}
+        </div>
+        <div>
+          <h2>Сохраненные профессии</h2>
+          <div class="grid grid--2">
+            {% for item in saved %}
+              <article class="card profession-card">
+                <h3>{{ item.profession.title_ru }}</h3>
+                <p>{{ item.profession.description_ru }}</p>
+                <a class="button button--secondary" href="{% url 'web:profession_detail' item.profession.slug %}">Подробнее</a>
+              </article>
+            {% empty %}
+              <div class="card value-card"><p>Пока нет сохраненных профессий.</p></div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card profile-panel">
+          <h3>Недавние разговоры</h3>
+          <div class="tag-list">
+            {% for conversation in conversations %}
+              <span class="badge">{{ conversation.title }}</span>
+            {% empty %}
+              <span class="badge">Пока нет разговоров</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

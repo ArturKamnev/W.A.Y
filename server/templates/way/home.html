@@ -1,0 +1,83 @@
+{% extends "way/base.html" %}
+{% block title %}W.A.Y. — Who Are You{% endblock %}
+{% block content %}
+<div class="landing-story" data-landing-story>
+  <div class="landing-track" data-landing-track>
+    <section class="section landing-slide landing-slide--split">
+      <div class="section__inner">
+        <div class="landing-copy">
+          <p class="eyebrow">Who Are You</p>
+          <h1 class="title">Профориентация, которая начинается с тебя.</h1>
+          <p class="lead">W.A.Y. помогает школьникам увидеть сильные стороны, пройти карьерный тест, получить честные рекомендации и собрать спокойный план следующих шагов.</p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="{% url 'web:test' %}">Пройти тест</a>
+            <a class="button button--secondary" href="{% url 'web:professions' %}">Изучить профессии</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <div class="ascii-way-logo">{% include "way/partials/ascii_logo.html" %}</div>
+          <div class="hero-visual__panel card glass">
+            <strong>W.A.Y. строит маршрут, а не ярлык.</strong>
+            <p>Результат опирается на ответы, профессию из каталога и понятные причины совпадения.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section landing-slide landing-slide--center">
+      <div class="section__inner">
+        <p class="eyebrow">Как это работает</p>
+        <h2 class="title">Сначала структура. Потом интерпретация.</h2>
+        <p class="lead">Тест не просит AI угадывать профессию. Он строит профиль признаков, сравнивает его с каталогом и только затем добавляет аккуратное объяснение.</p>
+        <div class="grid grid--3 motion-grid">
+          <article class="card value-card">
+            <span class="badge">01</span>
+            <h3>Детерминированный тест</h3>
+            <p>Ответы превращаются в профиль признаков, а профессии ранжируются по вычисляемому совпадению.</p>
+          </article>
+          <article class="card value-card">
+            <span class="badge">02</span>
+            <h3>AI только для смысла</h3>
+            <p>AI формулирует короткое объяснение, но не меняет профессии и проценты.</p>
+          </article>
+          <article class="card value-card">
+            <span class="badge">03</span>
+            <h3>Guide рядом</h3>
+            <p>После результата можно обсудить сомнения и получить следующий практичный шаг.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section landing-slide landing-slide--split">
+      <div class="section__inner">
+        <div>
+          <p class="eyebrow">Каталог</p>
+          <h2 class="title">Профессии без случайных догадок.</h2>
+          <p class="lead">Каждая рекомендация выбирается из существующего каталога W.A.Y. и получает процент, связанный с ответами.</p>
+          <div class="hero__actions">
+            <a class="button button--primary" href="{% url 'web:professions' %}">Открыть каталог</a>
+            <a class="button button--secondary" href="{% url 'web:onboarding' %}">Как начать</a>
+          </div>
+        </div>
+        <div class="grid featured-professions">
+          {% for profession in professions %}
+            <article class="card profession-card">
+              <span class="badge">{{ profession.category }}</span>
+              <h3>{{ profession.title_ru }}</h3>
+              <p>{{ profession.description_ru }}</p>
+              <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">Подробнее</a>
+            </article>
+          {% endfor %}
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="landing-progress" data-landing-progress aria-label="Навигация по слайдам">
+    <button type="button" class="is-active" aria-label="Слайд 1"></button>
+    <button type="button" aria-label="Слайд 2"></button>
+    <button type="button" aria-label="Слайд 3"></button>
+  </div>
+</div>
+{% endblock %}

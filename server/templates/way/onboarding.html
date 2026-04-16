@@ -1,0 +1,19 @@
+{% extends "way/base.html" %}
+{% block title %}Старт — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Начало</p>
+    <h1 class="title">Три шага к своему маршруту.</h1>
+    <div class="grid grid--3" style="margin-top:2rem">
+      <article class="card value-card"><span class="badge">1</span><h3>Ответь на вопросы</h3><p>Выбирай варианты, которые действительно похожи на тебя.</p></article>
+      <article class="card value-card"><span class="badge">2</span><h3>Посмотри результат</h3><p>Ты получишь одну основную профессию и три близких альтернативы.</p></article>
+      <article class="card value-card"><span class="badge">3</span><h3>Обсуди с Guide</h3><p>Сформулируй план, если результат понравился или вызвал сомнения.</p></article>
+    </div>
+    <div class="hero__actions">
+      <a class="button button--primary" href="{% url 'web:test' %}">Начать тест</a>
+      <a class="button button--secondary" href="{% url 'web:professions' %}">Сначала посмотреть каталог</a>
+    </div>
+  </div>
+</section>
+{% endblock %}

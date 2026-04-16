@@ -1,0 +1,27 @@
+{% load static %}
+<!doctype html>
+<html lang="ru" data-theme="dark">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>404 — W.A.Y.</title>
+    <link rel="icon" href="{% static 'way/img/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'way/css/app.css' %}">
+  </head>
+  <body>
+    <main class="not-found">
+      <div class="not-found__content">
+        <section>
+          <p class="eyebrow">W.A.Y. route missing</p>
+          <h1>404...</h1>
+          <p class="not-found__subtitle"><span data-typed-subtitle data-messages='["Кажется, эта страница потерялась.","Но твой путь всё ещё можно найти.","Вернёмся туда, где всё начинается.","Иногда даже ошибка 404 — это часть маршрута.","Эта страница не найдена, но направление есть."]'></span><span class="cursor"></span></p>
+          <a class="button button--primary" href="{% url 'web:home' %}">Вернуться домой</a>
+        </section>
+        <section class="not-found__logo" aria-hidden="true">
+          {% include "way/partials/ascii_logo.html" %}
+        </section>
+      </div>
+    </main>
+    <script src="{% static 'way/js/app.js' %}"></script>
+  </body>
+</html>

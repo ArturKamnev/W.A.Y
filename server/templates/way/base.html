@@ -1,0 +1,95 @@
+{% load static %}
+<!doctype html>
+<html lang="ru" data-theme="light">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}W.A.Y.{% endblock %}</title>
+    <link rel="icon" href="{% static 'way/img/favicon.png' %}">
+    <link rel="stylesheet" href="{% static 'way/css/app.css' %}">
+    <script>
+      (function(){try{var t=localStorage.getItem('way.theme');if(t==='dark'||t==='light'){document.documentElement.dataset.theme=t;document.documentElement.style.colorScheme=t}}catch(e){}})()
+    </script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <div class="product-frame">
+        <header class="navbar">
+          <div class="navbar__inner">
+            <a class="brand" href="{% url 'web:home' %}">
+              <img class="brand__logo" src="{% static 'way/img/way-logo.png' %}" alt="W.A.Y.">
+              <span class="brand__text">Who Are You</span>
+            </a>
+            <div class="navbar__drawer" data-nav-drawer data-open="false">
+              <nav class="navbar__links" aria-label="Главная навигация">
+                {% for key,label,url_name in nav_items %}
+                  <a class="{% if active_nav == key %}is-active{% endif %}" href="{% url url_name %}">{{ label }}</a>
+                {% endfor %}
+              </nav>
+              <div class="navbar__actions">
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему">
+                  <span class="theme-toggle__track">
+                    <span class="theme-toggle__icon">☼</span>
+                    <span class="theme-toggle__thumb"></span>
+                    <span class="theme-toggle__icon">●</span>
+                  </span>
+                </button>
+                {% if request.user.is_authenticated %}
+                  {% if request.user.role == 'admin' %}
+                    <a class="button button--secondary" href="{% url 'web:admin' %}">Админ</a>
+                  {% endif %}
+                  <a class="button button--ghost" href="{% url 'web:profile' %}">Профиль</a>
+                  <form method="post" action="{% url 'web:logout' %}">
+                    {% csrf_token %}
+                    <button class="button button--ghost" type="submit">Выйти</button>
+                  </form>
+                {% else %}
+                  <a class="button button--ghost" href="{% url 'web:login' %}">Войти</a>
+                  <a class="button button--secondary" href="{% url 'web:signup' %}">Регистрация</a>
+                {% endif %}
+                <a class="button button--primary" href="{% url 'web:onboarding' %}">Начать</a>
+              </div>
+            </div>
+            <button class="button button--secondary nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Открыть меню">☰</button>
+          </div>
+        </header>
+
+        {% if messages %}
+          <div class="messages">
+            {% for message in messages %}
+              <div class="message">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <main>
+          {% block content %}{% endblock %}
+        </main>
+
+        <footer class="footer">
+          <div class="footer__inner">
+            <div>
+              <a class="brand" href="{% url 'web:home' %}">
+                <img class="brand__logo" src="{% static 'way/img/way-logo.png' %}" alt="W.A.Y.">
+                <span class="brand__text">Who Are You</span>
+              </a>
+              <p>Профориентация, самопознание и спокойные следующие шаги.</p>
+            </div>
+            <div class="grid">
+              <h3>W.A.Y.</h3>
+              <a href="{% url 'web:about' %}">О проекте</a>
+              <a href="{% url 'web:professions' %}">Профессии</a>
+              <a href="{% url 'web:guide' %}">Guide</a>
+            </div>
+            <div class="grid">
+              <h3>Контакты</h3>
+              <a href="https://www.instagram.com/12school.gymnasium/" rel="noreferrer" target="_blank">Страница Instagram</a>
+              <span>© W.A.Y.</span>
+            </div>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <script src="{% static 'way/js/app.js' %}"></script>
+  </body>
+</html>

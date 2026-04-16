@@ -1,0 +1,12 @@
+{% extends "way/base.html" %}
+{% block title %}Результаты — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Результаты</p>
+    <h1 class="title">Результата пока нет.</h1>
+    <p class="lead">Пройди карьерный тест, чтобы увидеть основную профессию, альтернативы и объяснение.</p>
+    <a class="button button--primary" href="{% url 'web:test' %}">Пройти тест</a>
+  </div>
+</section>
+{% endblock %}

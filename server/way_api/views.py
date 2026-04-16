@@ -1,7 +1,5 @@
 from datetime import timedelta
-from concurrent.futures import ThreadPoolExecutor
 
-from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 from rest_framework import permissions, status
@@ -14,10 +12,7 @@ from .models import (
     GuideConversation,
     GuideMessage,
     Profession,
-    ResultRecommendation,
     SavedProfession,
-    TestAnswer,
-    TestAttempt,
     TestQuestion,
     TestQuestionOption,
     TestResult,
@@ -33,8 +28,8 @@ from .serializers import (
     message_dto,
     public_user,
 )
-from .services.groq import guide_reply, result_interpretation
-from .services.scoring import build_result, recommendation_reason
+from .services.groq import guide_reply
+from .services.results import create_result
 
 
 class IsAdminRole(permissions.BasePermission):
@@ -112,89 +107,26 @@ class TestSubmitView(APIView):
         if not isinstance(answers, list) or not answers:
             return Response({"message": "At least one answer is required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        with transaction.atomic():
-            attempt_id = request.data.get("attemptId")
-            if attempt_id:
-                attempt = TestAttempt.objects.filter(id=attempt_id, user=request.user).first()
-                if not attempt:
-                    return Response({"message": "Attempt not found"}, status=status.HTTP_404_NOT_FOUND)
-            else:
-                attempt = TestAttempt.objects.create(user=request.user)
+        selected_options = []
+        for answer in answers:
+            question_id = answer.get("questionId")
+            option_id = answer.get("optionId")
 
-            selected_options = []
-            for answer in answers:
-                question_id = answer.get("questionId")
-                option_id = answer.get("optionId")
+            try:
+                question_id = int(question_id)
+                option_id = int(option_id)
+            except (TypeError, ValueError):
+                return Response({"message": "Invalid questionId or optionId"}, status=status.HTTP_400_BAD_REQUEST)
 
-                try:
-                    question_id = int(question_id)
-                    option_id = int(option_id)
-                except (TypeError, ValueError):
-                    return Response(
-                        {"message": "Invalid questionId or optionId"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
+            option = TestQuestionOption.objects.filter(id=option_id, question_id=question_id).first()
+            if not option:
+                return Response({"message": "Question option not found"}, status=status.HTTP_400_BAD_REQUEST)
+            selected_options.append(option)
 
-                option = TestQuestionOption.objects.filter(
-                    id=option_id,
-                    question_id=question_id,
-                ).first()
-
-                if not option:
-                    return Response(
-                        {"message": "Question option not found"},
-                        status=status.HTTP_400_BAD_REQUEST,
-                    )
-
-                selected_options.append(option)
-                TestAnswer.objects.update_or_create(
-                    attempt=attempt,
-                    question=option.question,
-                    defaults={
-                        "selected_option": option,
-                        "numeric_value": option.value,
-                        "payload_snapshot": option.scoring_payload,
-                    },
-                )
-
-            if not selected_options:
-                return Response({"message": "No valid answers submitted"}, status=status.HTTP_400_BAD_REQUEST)
-
-            deterministic = build_result(selected_options, list(Profession.objects.all()))
-            with ThreadPoolExecutor(max_workers=2) as executor:
-                ru_future = executor.submit(result_interpretation, "ru", deterministic)
-                en_future = executor.submit(result_interpretation, "en", deterministic)
-                ai_ru = ru_future.result()
-                ai_en = en_future.result()
-
-            attempt.status = TestAttempt.Status.COMPLETED
-            attempt.completed_at = timezone.now()
-            attempt.save(update_fields=["status", "completed_at"])
-            TestResult.objects.filter(attempt=attempt).delete()
-            result = TestResult.objects.create(
-                attempt=attempt,
-                user=request.user,
-                summary_ru=deterministic["summaryRu"],
-                summary_en=deterministic["summaryEn"],
-                strengths=deterministic["strengths"],
-                work_style=deterministic["workStyle"],
-                preferred_environment=deterministic["preferredEnvironment"],
-                recommended_directions=deterministic["recommendedDirections"],
-                roadmap=deterministic["roadmap"],
-                ai_explanation_ru=ai_ru["summary"],
-                ai_explanation_en=ai_en["summary"],
-                ai_reasoning_ru=ai_ru["reasoning"],
-                ai_reasoning_en=ai_en["reasoning"],
-            )
-            for item in deterministic["recommendations"]:
-                reason = recommendation_reason(item)
-                ResultRecommendation.objects.create(
-                    result=result,
-                    profession=item.profession,
-                    match_percent=item.match_percent,
-                    reason_ru=reason["ru"],
-                    reason_en=reason["en"],
-                )
+        try:
+            result = create_result(request.user, selected_options, attempt_id=request.data.get("attemptId"))
+        except ValueError as exc:
+            return Response({"message": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
 
         return Response(ResultSerializer(result).data, status=status.HTTP_201_CREATED)
 

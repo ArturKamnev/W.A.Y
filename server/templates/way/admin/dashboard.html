@@ -1,0 +1,42 @@
+{% extends "way/base.html" %}
+{% block title %}Админ — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Админ</p>
+    <h1 class="title">Панель W.A.Y.</h1>
+    <div class="grid grid--3" style="margin-top:2rem">
+      <div class="card value-card"><span class="badge">Пользователи</span><strong class="match__value">{{ stats.totalUsers }}</strong></div>
+      <div class="card value-card"><span class="badge">Активные</span><strong class="match__value">{{ stats.activeUsers }}</strong></div>
+      <div class="card value-card"><span class="badge">Результаты</span><strong class="match__value">{{ stats.completedTests }}</strong></div>
+      <div class="card value-card"><span class="badge">Сохранения</span><strong class="match__value">{{ stats.savedProfessions }}</strong></div>
+      <div class="card value-card"><span class="badge">Разговоры</span><strong class="match__value">{{ stats.guideConversations }}</strong></div>
+    </div>
+    <div class="card profile-panel" style="margin-top:2rem">
+      <h2>Пользователи</h2>
+      <div class="admin-table">
+        <div class="admin-table__row admin-table__row--head"><span>Пользователь</span><span>Роль</span><span>Статус</span><span>Действия</span></div>
+        {% for user in users %}
+          <div class="admin-table__row">
+            <span><strong>{{ user.name }}</strong><br><small>{{ user.email }}</small></span>
+            <span class="badge">{{ user.role }}</span>
+            <span class="badge">{% if user.is_active %}active{% else %}inactive{% endif %}</span>
+            <span class="page-actions">
+              <form class="inline-form" method="post" action="{% url 'web:admin_user_status' user.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="is_active" value="{% if user.is_active %}0{% else %}1{% endif %}">
+                <button class="button button--secondary" type="submit">{% if user.is_active %}Отключить{% else %}Включить{% endif %}</button>
+              </form>
+              <form class="inline-form" method="post" action="{% url 'web:admin_user_role' user.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="role" value="{% if user.role == 'admin' %}user{% else %}admin{% endif %}">
+                <button class="button button--ghost" type="submit">{% if user.role == 'admin' %}Сделать user{% else %}Сделать admin{% endif %}</button>
+              </form>
+            </span>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

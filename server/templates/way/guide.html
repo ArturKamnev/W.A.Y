@@ -1,0 +1,41 @@
+{% extends "way/base.html" %}
+{% block title %}W.A.Y. Guide{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">W.A.Y. Guide</p>
+    <h1 class="title">Спокойный разговор о следующем шаге.</h1>
+    <p class="lead">Guide помогает разобрать результат, сомнения и план действий. AI работает только на сервере.</p>
+    <div class="guide-layout" style="margin-top:2rem">
+      <aside class="grid">
+        <div class="card profile-panel">
+          <h3>Темы</h3>
+          <div class="chat-chips">
+            {% for id,prompt in topics %}
+              <button class="button button--secondary" type="button" onclick="document.querySelector('[name=message]').value='{{ prompt|escapejs }}';document.querySelector('[name=message]').focus()">{{ prompt }}</button>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="card profile-panel">
+          <h3>Разговоры</h3>
+          {% for item in conversations %}
+            <span class="badge">{{ item.title }}</span>
+          {% endfor %}
+        </div>
+      </aside>
+      <section class="card chat-shell">
+        <div class="chat-list" data-chat-list>
+          {% for message in conversation.messages.all %}
+            <div class="chat-bubble {% if message.role == 'user' %}chat-bubble--user{% else %}chat-bubble--guide{% endif %}">{{ message.content }}</div>
+          {% endfor %}
+        </div>
+        <form class="chat-input" method="post" action="{% url 'web:guide_message' conversation.id %}" data-guide-form>
+          {% csrf_token %}
+          <input class="input" name="message" placeholder="Напиши, что сейчас хочется понять...">
+          <button class="button button--primary" type="submit">Отправить</button>
+        </form>
+      </section>
+    </div>
+  </div>
+</section>
+{% endblock %}

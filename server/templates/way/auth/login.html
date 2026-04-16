@@ -1,0 +1,29 @@
+{% extends "way/base.html" %}
+{% block title %}Вход — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Аккаунт</p>
+    <h1 class="title">Войти в W.A.Y.</h1>
+    <p class="lead">Продолжи тест, сохрани профессии и вернись к разговору с Guide.</p>
+    <div class="card profile-panel auth-card">
+      <form class="form" method="post">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="field">
+          <label for="{{ form.identifier.id_for_label }}">Email</label>
+          {{ form.identifier }}
+          {{ form.identifier.errors }}
+        </div>
+        <div class="field">
+          <label for="{{ form.password.id_for_label }}">Пароль</label>
+          {{ form.password }}
+          {{ form.password.errors }}
+        </div>
+        <button class="button button--primary button--full" type="submit">Войти</button>
+        <a href="{% url 'web:signup' %}">Создать аккаунт</a>
+      </form>
+    </div>
+  </div>
+</section>
+{% endblock %}

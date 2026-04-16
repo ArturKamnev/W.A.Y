@@ -1,297 +1,241 @@
-# W.A.Y. Full-Stack MVP
+# W.A.Y. Django Templates Application
 
-W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished TypeScript frontend and a Django REST backend.
+W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery product for school students, now delivered primarily through Django views, Django Templates, server-rendered forms, Django static files, and small focused JavaScript.
 
-The project now includes JWT authentication, PostgreSQL-ready persistence, saved professions, deterministic career-test results, backend-only Groq integration, W.A.Y. Guide conversations, an admin API, full light/dark theming, animated ASCII logo treatments, and a custom SPA 404 page.
+The React + TypeScript + Vite SPA has been retired from the active project. Django is now responsible for page rendering, authentication, career-test submission, result rendering, professions, profile, W.A.Y. Guide, admin pages, theme support, and the custom branded 404 page.
 
 ## Stack
 
-- Frontend: React, TypeScript, Vite, React Router, Zustand, Framer Motion, react-i18next, Tailwind CSS, react-hook-form, zod
-- Backend: Python, Django, Django REST Framework, SimpleJWT, PostgreSQL-ready ORM models, django-cors-headers
-- AI: Groq OpenAI-compatible chat completions through the Django backend only
-- Quality: Vitest, ESLint, TypeScript builds, Django checks, DRF serializers, service-layer scoring
+- Backend and web app: Python, Django, Django Templates, Django forms, Django sessions
+- API compatibility layer: Django REST Framework and SimpleJWT remain available under `/api/`
+- Database: PostgreSQL-ready Django ORM models, with SQLite fallback when `DATABASE_URL` is not set
+- AI: Groq OpenAI-compatible chat completions from the Django server only
+- Static assets: Django static files in `server/static/way/`
+- UX: light/dark theme tokens, animated ASCII W.A.Y. logo, custom 404, small vanilla JavaScript
 
-## Folder Structure
+## Project Structure
 
 ```text
-src/                         React frontend
-  app/                       route config and app shell
-  components/                reusable UI, layout, cards, and ASCII logo components
-  hooks/                     theme-safe animation utilities
-  pages/                     product pages, including /admin and custom 404
-  services/                  API client, mock services, and API repositories
-  store/                     persisted Zustand slices for auth, theme, language, test state
-  i18n/                      English and Russian translations
-  styles/                    theme tokens, layout, motion, responsive CSS
-
-server/                      Django backend
-  manage.py                  Django entrypoint
-  requirements.txt           backend dependencies
-  way_backend/               Django settings, ASGI/WSGI, root urls
-  way_api/                   API models, serializers, views, urls, services, migrations
-    services/scoring.py      deterministic answer scoring and profession ranking
-    services/groq.py         backend-only Groq JSON/fallback integration
-    management/commands/     seed command for local demo data
+server/
+  manage.py
+  requirements.txt
+  way_backend/
+    settings.py                 Django settings
+    urls.py                     root URLs for templates and API
+  way_api/
+    models.py                   users, professions, tests, results, guide, admin audit data
+    forms.py                    template-facing auth/profile forms
+    web_views.py                server-rendered product views
+    web_urls.py                 Django Templates routes
+    views.py                    DRF compatibility API views
+    serializers.py              DRF serializers
+    services/
+      scoring.py                deterministic trait scoring and profession ranking
+      results.py                shared result generation service
+      groq.py                   backend-only Groq integration and deterministic fallback
+    management/commands/
+      seed_way.py               idempotent demo data seed
+  templates/way/
+    base.html                   shared product shell
+    home.html                   homepage
+    about.html                  about page
+    onboarding.html             onboarding page
+    test.html                   career test form
+    guide.html                  W.A.Y. Guide
+    profile.html                profile page
+    404.html                    standalone branded 404
+    auth/                       login and signup templates
+    professions/                list and detail templates
+    results/                    empty and detail result templates
+    admin/                      product admin templates
+  static/way/
+    css/app.css                 design tokens, layout, components, responsive styles
+    js/app.js                   theme toggle, nav, landing slides, reveal motion, ASCII mutation, guide AJAX, test progress
+    img/                        logo and favicon
 ```
-
-The previous Node/Express/Prisma backend has been removed from the active backend tree. The active backend is Django.
 
 ## Environment
 
-Frontend `.env`:
-
-```text
-VITE_API_BASE_URL=http://localhost:4000/api
-VITE_USE_MOCK_API=false
-```
-
-Backend `server/.env`:
+Create `server/.env` from `server/.env.example`:
 
 ```text
 DJANGO_DEBUG=true
 DJANGO_SECRET_KEY=replace_with_a_long_random_secret
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/way
-CLIENT_URL=http://localhost:5173
-CLIENT_URLS=http://localhost:5173,http://localhost:4173
+CLIENT_URLS=http://localhost:4000
 ALLOWED_HOSTS=localhost,127.0.0.1
 GROQ_API_KEY=change_me
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 ```
 
-Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns deterministic fallback guidance instead of breaking the user flow.
+Do not commit real secrets. If `GROQ_API_KEY` is missing or set to `change_me`, W.A.Y. returns deterministic fallback guide/result text so the product flow still works.
 
 ## Local Setup
 
-PowerShell blocks `npm.ps1` on this machine, so use `npm.cmd`.
-
 ```bash
-npm.cmd install
 python -m pip install -r server/requirements.txt
+copy server\.env.example server\.env
+cd server
+python manage.py migrate
+python manage.py seed_way
+python manage.py runserver 4000
 ```
 
-Start PostgreSQL locally and create a database named `way`. Docker example:
+Open `http://localhost:4000`.
+
+PostgreSQL Docker example:
 
 ```bash
 docker run --name way-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=way -p 5432:5432 -d postgres:16
 ```
 
-Prepare the backend:
+## Seeded Accounts
 
-```bash
-copy server\.env.example server\.env
-cd server
-python manage.py migrate
-python manage.py seed_way
-cd ..
-```
-
-Seeded credentials:
-
-```text
-Admin:   admin@way.local / Admin12345!
-Student: student@way.local / Student12345!
-```
-
-Run the app in two terminals:
-
-```bash
-npm.cmd run dev:server
-npm.cmd run dev:frontend
-```
-
-Open `http://localhost:5173`.
-
-## Scripts
-
-Frontend:
-
-```bash
-npm.cmd run typecheck
-npm.cmd run lint
-npm.cmd run test
-npm.cmd run validate:manifest
-npm.cmd run validate:novelty
-npm.cmd run build
-```
-
-Backend:
-
-```bash
-python server/manage.py check
-python server/manage.py makemigrations
-python server/manage.py migrate
-python server/manage.py seed_way
-npm.cmd run build:server
-```
-
-## Django Backend Architecture
-
-The API is mounted at `/api` and preserves the frontend contract:
-
-- `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- `GET /api/test/questions`, `POST /api/test/submit`
-- `GET /api/test/results/latest`, `GET /api/test/results/:id`
-- `GET /api/professions`, `GET /api/professions/:slug`, save/remove/list saved professions
-- `GET /api/profile`, `PATCH /api/profile`
-- `GET /api/guide/topics`, conversations, persisted messages
-- `GET /api/admin/stats`, user list/detail/status/role endpoints
-
-Authentication uses SimpleJWT. Private routes require `Authorization: Bearer <token>`. Admin routes require the user role `admin`.
-
-The Django schema includes users, professions, test questions/options, attempts, answers, results, result recommendations, saved professions, guide conversations/messages, and admin audit logs.
-
-## Auth Contract
-
-Login accepts JSON:
-
-```json
-{
-  "identifier": "admin@way.local",
-  "password": "Admin12345!"
-}
-```
-
-Successful login/signup returns:
-
-```json
-{
-  "user": {},
-  "token": "jwt-access-token",
-  "refreshToken": "jwt-refresh-token",
-  "expiresAt": "2026-04-23T00:00:00+06:00"
-}
-```
-
-Public endpoints use anonymous DRF views with authentication disabled, so a stale browser token cannot poison them:
-
-- `POST /api/auth/signup`
-- `POST /api/auth/login`
-- `POST /api/auth/logout`
-- `GET /api/test/questions`
-- `GET /api/professions`
-- `GET /api/professions/:slug`
-
-Private endpoints require a valid bearer token:
-
-- `GET /api/auth/me`
-- `POST /api/test/submit`
-- `GET /api/test/results/latest`
-- `GET /api/test/results/:id`
-- `GET /api/professions/saved`
-- `POST /api/professions/save`
-- `DELETE /api/professions/save/:id`
-- `GET /api/profile`
-- `PATCH /api/profile`
-- guide conversation/message endpoints
-- admin endpoints
-
-The frontend API client now marks every request as `auth: 'none'` or `auth: 'required'`. Public calls never attach `Authorization`. Required calls validate the persisted Zustand session before sending the request. If a token is missing, malformed, expired, or rejected with `401`, `way.auth.v1` is cleared and a `way:auth-expired` event resets the app session. Logout always clears local session state even if the server call cannot complete.
-
-## seed_way
-
-`python manage.py seed_way` is idempotent. It bulk-upserts professions, questions, and answer options, then recreates the demo credentials with valid Django password hashes every run:
+`python manage.py seed_way` is idempotent. It bulk-upserts professions, test questions, answer options, and recreates demo credentials with valid Django password hashes every run:
 
 ```text
 admin@way.local / Admin12345!
 student@way.local / Student12345!
 ```
 
-PostgreSQL connections use a short `connect_timeout` so a bad `DATABASE_URL` fails quickly instead of hanging indefinitely.
+PostgreSQL connections use a short connection timeout so a bad `DATABASE_URL` fails quickly instead of hanging indefinitely.
 
-## Career-Test Result Pipeline
+## Template Routes
 
-The result system is deterministic first and AI-assisted second.
+- `/` home
+- `/about/`
+- `/onboarding/`
+- `/login/`
+- `/signup/`
+- `/logout/`
+- `/professions/`
+- `/professions/<slug>/`
+- `/test/`
+- `/results/`
+- `/results/<id>/`
+- `/guide/`
+- `/profile/`
+- `/way-admin/`
+- custom Django `handler404`
 
-1. `way_api/services/scoring.py` maps selected answers into weighted trait signals such as logic, analytical thinking, creativity, communication, technical interest, helping people, structure, teamwork, independence, visual interest, research orientation, leadership, and organization.
-2. Profession vectors are built from the existing `Profession.scoring_tags` plus category fallback weights.
-3. The backend compares the user vector to every profession vector, ranks catalog professions, selects one primary profession plus three alternatives, and derives normalized match percentages from computed scores.
-4. Deterministic result text is generated for summary, strengths, work style, preferred environment, directions, roadmap, and per-profession reasons.
-5. Groq receives only locked structured ranked data. It cannot invent professions, decide rankings, or change percentages.
+The DRF compatibility API remains mounted at `/api/` for integrations and focused async use, but it is no longer the primary frontend delivery mechanism.
 
-## AI JSON-Only Behavior
+## Authentication
 
-`way_api/services/groq.py` requests strict JSON from Groq for result interpretation:
+The template app uses Django session authentication:
 
-```json
-{
-  "primaryProfessionSlug": "ux-designer",
-  "primaryMatchPercent": 92,
-  "alternatives": [
-    { "slug": "frontend-developer", "matchPercent": 86 },
-    { "slug": "product-manager", "matchPercent": 81 },
-    { "slug": "data-analyst", "matchPercent": 78 }
-  ],
-  "summary": "short clean explanation",
-  "reasoning": ["reason 1", "reason 2", "reason 3"]
-}
-```
+- Login is handled by `LoginForm` and `django.contrib.auth.login`
+- Signup creates the custom `User` model and immediately starts a session
+- Logout is a CSRF-protected POST
+- Profile, test, results, guide, saved professions, and admin pages require session auth where appropriate
+- Admin product pages require `user.role == "admin"`
 
-The backend verifies that slugs and percentages match the deterministic result exactly. Emoji are stripped. Invalid or unavailable AI output falls back to deterministic summary and reasoning bullets.
+The API layer still supports SimpleJWT for `/api/` routes. Public API endpoints disable authentication so stale bearer tokens cannot poison public reads.
 
-## Result Flow Fix
+## Career Test and Results
 
-The test completion flow now handles submission as a real async state:
+The career test is now a server-rendered form in `templates/way/test.html`. The form posts selected answers to `web_views.career_test`, which calls the shared `create_result` service.
 
-- submit errors are surfaced instead of leaving the user in a dead loading state
-- successful results are persisted in Zustand before navigation
-- navigation to `/results` uses `replace`
-- the results page prefers the freshest backend result over stale local state
-- AI delay or failure does not block a valid deterministic result
+Result generation is shared by templates and API:
+
+1. Selected answer options are converted into structured trait signals.
+2. Existing catalog professions are scored deterministically.
+3. The backend selects one primary profession and three alternatives.
+4. Match percentages are normalized from computed scores.
+5. Groq receives only locked ranked data for short JSON-only interpretation.
+6. If AI fails or returns invalid data, deterministic fallback text is saved.
+
+Results render through `templates/way/results/detail.html` with the primary match, alternatives, percentages, explanation bullets, and next actions.
+
+## W.A.Y. Guide
+
+Guide is rendered by Django in `templates/way/guide.html`. Messages are persisted as `GuideConversation` and `GuideMessage` rows.
+
+Small JavaScript in `server/static/way/js/app.js` submits guide messages asynchronously when possible and falls back to a normal POST if JavaScript or the network fails. Groq remains server-side only.
+
+## Professions and Saved Items
+
+Professions are rendered by Django templates:
+
+- list page with category/search filtering
+- detail page with skills and scoring tags
+- CSRF-protected save/remove action for authenticated users
+
+Saved professions appear on the profile page.
 
 ## Theme System
 
-The app supports full light and dark modes through CSS design tokens in `src/styles/tokens.css`.
+Light/dark mode is implemented with CSS tokens in `server/static/way/css/app.css`.
 
-Light mode uses cool off-white surfaces, refined blue/cyan/violet accents, premium gray text hierarchy, subtle borders, and airy shadows.
+The theme switcher in `base.html` uses a small vanilla JS controller:
 
-Dark mode uses deep graphite/navy surfaces, restrained cyan/violet/blue accents, high-contrast text, and controlled glow depth.
+- toggles `document.documentElement.dataset.theme`
+- persists the selection in `localStorage`
+- applies early in the document head to avoid visual flashing
 
-Theme state is stored in `way.preferences.v1` through Zustand. The selected mode is applied to `document.documentElement.dataset.theme`, so all pages and the custom 404 route receive the correct tokens.
+The palette preserves the W.A.Y. product feel: cool off-white surfaces and refined accents in light mode, deep graphite/navy surfaces with controlled cyan/blue/violet glow in dark mode.
 
-## Theme Toggle
+## Homepage Slide Navigation
 
-The header includes a custom animated theme switcher:
+The homepage is a desktop slide-based landing experience again. `templates/way/home.html` uses `landing-story`, `landing-track`, and `landing-slide` sections. `server/static/way/js/app.js` listens for wheel and keyboard events on desktop widths and moves the track one full slide at a time with controlled easing.
 
-- no default checkbox styling
-- smooth thumb transition
-- clear light/dark visual state
-- hover and focus states
-- persisted selection
-- immediate app-wide theme update
+On desktop, the body is temporarily locked while the landing story is active so the footer and random page fragments do not appear between slides. On mobile and narrow tablets, the slide controller disables itself and the page returns to natural document scrolling.
 
-## ASCII Logo Animation
+## Motion and Visual Restoration
 
-The first homepage hero visual now uses `src/components/domain/AsciiWayLogo.tsx` instead of an image block.
+The design restoration is concentrated in `server/static/way/css/app.css`:
 
-The logo is rendered as actual text characters based on the provided ASCII reference. `useAsciiMutation` mutates only visible characters from a curated symbol pool while preserving whitespace and the W.A.Y. silhouette. The block uses cyan/blue/violet glow and responsive sizing for desktop and mobile.
+- stronger layered surfaces and frame shadows
+- restored card hover lift and glow depth
+- polished button transitions and focus states
+- premium pill/tag treatment with consistent sizing, border, background, and typography
+- section/card reveal animation through a small IntersectionObserver helper
+- active homepage slide reveal choreography
+- responsive navigation that keeps the hamburger hidden on desktop and only shows it on smaller breakpoints
 
-The custom 404 page also uses text-only animated ASCII with a full-screen cinematic layout and rotating typed Russian subtitles via `useTypedRotatingText`.
+## ASCII Logo and 404
 
-## Frontend Integration
+The homepage hero and 404 page use a large text-only ASCII W.A.Y. logo in `templates/way/partials/ascii_logo.html`.
 
-The frontend keeps the repository architecture:
+`app.js` mutates visible characters from a curated symbol pool while preserving whitespace and the overall silhouette. The 404 page is standalone, has no header/footer, includes rotating typed Russian subtitles, and routes back home.
 
-- `src/services/apiClient.ts` centralizes base URL, JSON handling, DRF error handling, explicit auth modes, bearer-token injection, and stale-token recovery
-- `src/services/apiRepositories.ts` maps frontend models to the Django API contract
-- `src/services/repositories.ts` can still switch to mock services with `VITE_USE_MOCK_API=true`
-- Zustand persists auth, language, theme, latest result, saved professions, guide conversations, and test progress
+## Static Assets
 
-Backend-powered pages now handle failed or expired sessions without endless loading states. Public question/profession loads remain usable after a bad token; private profile, guide, result, and admin flows recover by clearing broken auth state and returning the user to a safe login-required state.
+Django serves project static files from:
 
-## Russian-First UX
+```text
+server/static/way/
+```
 
-Russian remains the default first-run language. The language switcher persists the chosen locale, and the backend stores `preferred_language` per user so W.A.Y. Guide and result explanations can remain Russian-first.
+During production deployment, run:
 
-## Security Notes
+```bash
+python manage.py collectstatic
+```
 
-- Secrets live only in environment variables.
-- Groq is called only from Django.
-- JWT auth, CORS restrictions, DRF validation, role checks, and Django password hashing are enabled.
-- The logout endpoint is stateless for the current client flow.
+## Validation
 
-## Known Limitations
+```bash
+cd server
+python manage.py check
+python -m compileall way_backend way_api
+python manage.py seed_way
+```
 
-- Email verification, password reset, refresh-token rotation, and production observability are not implemented yet.
-- The frontend bundle still emits a Vite chunk-size warning; route-level lazy loading is the next cleanup.
-- Seed data is compact, but the Django schema and scoring services are ready for a larger profession catalog.
+The template migration has been smoke-tested with Django’s test client for:
+
+- major page rendering
+- login
+- profile
+- guide
+- test submission
+- result rendering
+- custom 404
+
+## Migration Notes
+
+- The active product is no longer a Vite SPA.
+- React source, Vite config, frontend package metadata, Vite build output, and public SPA assets were retired from the active tree.
+- Business logic, database models, deterministic scoring, Groq integration, admin behavior, and API compatibility were preserved.
+- The product now favors server-rendered Django pages with small JavaScript only for high-value interactions.

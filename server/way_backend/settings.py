@@ -15,7 +15,7 @@ if DEBUG and "testserver" not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append("testserver")
 CLIENT_URLS = [
     origin.strip()
-    for origin in os.getenv("CLIENT_URLS", os.getenv("CLIENT_URL", "http://localhost:5173,http://localhost:4173")).split(",")
+    for origin in os.getenv("CLIENT_URLS", os.getenv("CLIENT_URL", "http://localhost:4000")).split(",")
     if origin.strip()
 ]
 
@@ -42,7 +42,21 @@ MIDDLEWARE = [
 ]
 
 ROOT_URLCONF = "way_backend.urls"
-TEMPLATES = []
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "DIRS": [BASE_DIR / "templates"],
+        "APP_DIRS": True,
+        "OPTIONS": {
+            "context_processors": [
+                "django.template.context_processors.debug",
+                "django.template.context_processors.request",
+                "django.contrib.auth.context_processors.auth",
+                "django.contrib.messages.context_processors.messages",
+            ],
+        },
+    }
+]
 WSGI_APPLICATION = "way_backend.wsgi.application"
 ASGI_APPLICATION = "way_backend.asgi.application"
 
@@ -56,6 +70,9 @@ else:
     DATABASES = {"default": {"ENGINE": "django.db.backends.sqlite3", "NAME": BASE_DIR / "db.sqlite3"}}
 
 AUTH_USER_MODEL = "way_api.User"
+LOGIN_URL = "/login/"
+LOGIN_REDIRECT_URL = "/profile/"
+LOGOUT_REDIRECT_URL = "/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
@@ -79,6 +96,7 @@ TIME_ZONE = "Asia/Almaty"
 USE_I18N = True
 USE_TZ = True
 STATIC_URL = "static/"
+STATICFILES_DIRS = [BASE_DIR / "static"]
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 GROQ_API_KEY = os.getenv("GROQ_API_KEY", "change_me")

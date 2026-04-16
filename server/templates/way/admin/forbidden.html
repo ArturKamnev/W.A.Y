@@ -1,0 +1,12 @@
+{% extends "way/base.html" %}
+{% block title %}Нет доступа — W.A.Y.{% endblock %}
+{% block content %}
+<section class="section">
+  <div class="section__inner">
+    <p class="eyebrow">Админ</p>
+    <h1 class="title">Недостаточно прав.</h1>
+    <p class="lead">Эта страница доступна только администраторам W.A.Y.</p>
+    <a class="button button--secondary" href="{% url 'web:profile' %}">Вернуться в профиль</a>
+  </div>
+</section>
+{% endblock %}
