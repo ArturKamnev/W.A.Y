@@ -12,6 +12,7 @@ export function TestPage() {
   const [questions, setQuestions] = useState<Question[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState('')
   const session = useAuthStore((state) => state.session)
   const { answers, currentIndex, lastSavedAt, setAnswer, setCurrentIndex, resetTest } = useTestStore()
   const setLatestResult = useSavedItemsStore((state) => state.setLatestResult)
@@ -43,6 +44,7 @@ export function TestPage() {
       return
     }
     setSubmitting(true)
+    setSubmitError('')
     try {
       const result = await repositories.results.submitTest({
         answers: Object.values(answers),
@@ -50,7 +52,9 @@ export function TestPage() {
       })
       setLatestResult(result)
       resetTest()
-      navigate('/results')
+      navigate('/results', { replace: true })
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : t('common.empty'))
     } finally {
       setSubmitting(false)
     }
@@ -114,6 +118,7 @@ export function TestPage() {
           )}
           {lastSavedAt ? <Badge>{t('test.autosaved')}</Badge> : null}
         </div>
+        {submitError ? <p className="field__error">{submitError}</p> : null}
       </div>
     </Section>
   )

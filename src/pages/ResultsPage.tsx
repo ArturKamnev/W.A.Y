@@ -21,7 +21,7 @@ export function ResultsPage() {
       repositories.professions.listProfessions(),
     ]).then(([latest, professionItems]) => {
       if (!active) return
-      setResult(storedResult ?? latest ?? null)
+      setResult(latest ?? storedResult ?? null)
       setProfessions(professionItems)
     })
     return () => {

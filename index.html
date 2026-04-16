@@ -8,6 +8,16 @@
       name="description"
       content="W.A.Y. is a frontend MVP for career guidance and self-discovery for school students."
     />
+    <script>
+      try {
+        const stored = JSON.parse(localStorage.getItem('way.preferences.v1') || '{}')
+        const theme = stored?.state?.theme === 'dark' ? 'dark' : 'light'
+        document.documentElement.dataset.theme = theme
+        document.documentElement.style.colorScheme = theme
+      } catch {
+        document.documentElement.dataset.theme = 'light'
+      }
+    </script>
     <title>W.A.Y. | Who Are You</title>
   </head>
   <body>

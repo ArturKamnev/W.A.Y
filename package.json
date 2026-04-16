@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "dev:frontend": "vite",
-    "dev:server": "npm.cmd --prefix server run dev",
-    "build:server": "npm.cmd --prefix server run build",
+    "dev:server": "python server/manage.py runserver 4000",
+    "build:server": "python server/manage.py check",
     "build": "npm run typecheck && vite build",
     "typecheck": "tsc -b",
     "lint": "eslint .",

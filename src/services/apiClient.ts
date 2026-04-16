@@ -30,8 +30,10 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   if (!response.ok) {
     let message = `API request failed with ${response.status}`
     try {
-      const payload = (await response.json()) as { message?: string }
+      const payload = (await response.json()) as { message?: string; detail?: string; error?: string }
       if (payload.message) message = payload.message
+      if (payload.detail) message = payload.detail
+      if (payload.error) message = payload.error
     } catch {
       // Keep the transport-level message if the response is empty.
     }

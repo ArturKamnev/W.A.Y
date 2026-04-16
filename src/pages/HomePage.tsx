@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 import { Badge, Card, Section } from '../components/ui'
-import { mediaAssets } from '../data/media'
+import { AsciiWayLogo } from '../components/domain/AsciiWayLogo'
 
 const homeSteps = [
   ['01', 'home.steps.oneTitle', 'home.steps.oneBody'],
@@ -176,9 +176,7 @@ export function HomePage() {
               initial={visualInitial}
               transition={{ delay: 0.12, duration: 0.72, ease }}
             >
-              <img alt={t(mediaAssets.hero.altKey)} src={mediaAssets.hero.url} />
-              <div className="hero-visual__overlay" />
-              <div className="path-lines" />
+              <AsciiWayLogo className="hero-ascii-logo" />
               <div className="hero-visual__panel glass">
                 <Badge>{t('brand.slogan')}</Badge>
                 <strong>{t('home.visualTitle')}</strong>

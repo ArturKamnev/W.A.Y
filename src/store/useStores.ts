@@ -3,6 +3,8 @@ import { persist } from 'zustand/middleware'
 import { mockConversations } from '../data/mockData'
 import type { AuthSession, ChatConversation, Language, TestAnswer, TestResult } from '../types/models'
 
+export type ThemeMode = 'light' | 'dark'
+
 interface AuthState {
   session: AuthSession | null
   setSession: (session: AuthSession | null) => void
@@ -10,8 +12,10 @@ interface AuthState {
 
 interface PreferencesState {
   language: Language
-  theme: 'light'
+  theme: ThemeMode
   setLanguage: (language: Language) => void
+  setTheme: (theme: ThemeMode) => void
+  toggleTheme: () => void
 }
 
 interface TestState {
@@ -60,6 +64,8 @@ export const usePreferencesStore = create<PreferencesState>()(
       language: 'ru',
       theme: 'light',
       setLanguage: (language) => set({ language }),
+      setTheme: (theme) => set({ theme }),
+      toggleTheme: () => set((state) => ({ theme: state.theme === 'light' ? 'dark' : 'light' })),
     }),
     {
       name: 'way.preferences.v1',

@@ -1,52 +1,40 @@
 # W.A.Y. Full-Stack MVP
 
-W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished React frontend and a production-style Node.js API.
+W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished TypeScript frontend and a Django REST backend.
 
-The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, an admin dashboard, deterministic career-test scoring, backend-only Groq integration for controlled explanations, and a custom animated SPA 404 page.
+The project now includes JWT authentication, PostgreSQL-ready persistence, saved professions, deterministic career-test results, backend-only Groq integration, W.A.Y. Guide conversations, an admin API, full light/dark theming, animated ASCII logo treatments, and a custom SPA 404 page.
 
 ## Stack
 
 - Frontend: React, TypeScript, Vite, React Router, Zustand, Framer Motion, react-i18next, Tailwind CSS, react-hook-form, zod
-- Backend: Node.js, TypeScript, Express, Prisma ORM, PostgreSQL, JWT auth, bcryptjs, Helmet, CORS, rate limiting, structured JSON request logs
-- AI: Groq OpenAI-compatible chat completions through the backend only
-- Quality: Vitest, ESLint, TypeScript builds, style-manifest and novelty validators
+- Backend: Python, Django, Django REST Framework, SimpleJWT, PostgreSQL-ready ORM models, django-cors-headers
+- AI: Groq OpenAI-compatible chat completions through the Django backend only
+- Quality: Vitest, ESLint, TypeScript builds, Django checks, DRF serializers, service-layer scoring
 
 ## Folder Structure
 
 ```text
-src/                    React frontend
-  app/                  route config and app shell
-  components/           reusable UI, layout, and domain cards
-  pages/                product pages, including /admin
-  services/             API client, mock services, and real API repositories
-  store/                persisted Zustand slices
-  i18n/                 English and Russian translations
-  styles/               light theme tokens, layout, motion, responsive CSS
+src/                         React frontend
+  app/                       route config and app shell
+  components/                reusable UI, layout, cards, and ASCII logo components
+  hooks/                     theme-safe animation utilities
+  pages/                     product pages, including /admin and custom 404
+  services/                  API client, mock services, and API repositories
+  store/                     persisted Zustand slices for auth, theme, language, test state
+  i18n/                      English and Russian translations
+  styles/                    theme tokens, layout, motion, responsive CSS
 
-server/                 Express + Prisma backend
-  prisma/               PostgreSQL schema, migration, seed script
-  src/
-    config/             env validation
-    db/                 Prisma client
-    middleware/         auth, role guard, error handler
-    modules/            auth, test, professions, guide, profile, admin, health
-    services/           Groq integration
+server/                      Django backend
+  manage.py                  Django entrypoint
+  requirements.txt           backend dependencies
+  way_backend/               Django settings, ASGI/WSGI, root urls
+  way_api/                   API models, serializers, views, urls, services, migrations
+    services/scoring.py      deterministic answer scoring and profession ranking
+    services/groq.py         backend-only Groq JSON/fallback integration
+    management/commands/     seed command for local demo data
 ```
 
-Key career-test scoring files:
-
-```text
-server/src/modules/test/
-  answerScoring.ts        maps selected answers into a normalized trait vector
-  professionRanking.ts    builds profession vectors and ranks catalog professions
-  resultNormalization.ts  converts ranked scores into final percentages and text payloads
-  scoring.ts              orchestrates the deterministic result pipeline
-  types.ts                shared scoring, ranking, AI, and DTO types
-
-src/hooks/
-  useTypedRotatingText.ts rotates and types 404 subtitle messages
-  useAsciiMutation.ts     animates the character-only W.A.Y. ASCII logo
-```
+The previous Node/Express/Prisma backend has been removed from the active backend tree. The active backend is Django.
 
 ## Environment
 
@@ -60,18 +48,17 @@ VITE_USE_MOCK_API=false
 Backend `server/.env`:
 
 ```text
-PORT=4000
-NODE_ENV=development
+DJANGO_DEBUG=true
+DJANGO_SECRET_KEY=replace_with_a_long_random_secret
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/way
-JWT_SECRET=replace_with_a_long_random_secret
-JWT_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
+ALLOWED_HOSTS=localhost,127.0.0.1
 GROQ_API_KEY=change_me
 GROQ_MODEL=openai/gpt-oss-120b
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 ```
 
-Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns safe deterministic fallback guidance instead of failing the product flow. Groq is called only from the backend.
+Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns deterministic fallback guidance instead of breaking the user flow.
 
 ## Local Setup
 
@@ -79,10 +66,10 @@ PowerShell blocks `npm.ps1` on this machine, so use `npm.cmd`.
 
 ```bash
 npm.cmd install
-npm.cmd --prefix server install
+python -m pip install -r server/requirements.txt
 ```
 
-Start PostgreSQL locally, then create a database named `way`. Docker example:
+Start PostgreSQL locally and create a database named `way`. Docker example:
 
 ```bash
 docker run --name way-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=way -p 5432:5432 -d postgres:16
@@ -92,8 +79,10 @@ Prepare the backend:
 
 ```bash
 copy server\.env.example server\.env
-npm.cmd --prefix server run prisma:migrate
-npm.cmd --prefix server run prisma:seed
+cd server
+python manage.py migrate
+python manage.py seed_way
+cd ..
 ```
 
 Seeded credentials:
@@ -128,119 +117,120 @@ npm.cmd run build
 Backend:
 
 ```bash
-npm.cmd --prefix server run typecheck
-npm.cmd --prefix server run build
-npm.cmd --prefix server run prisma:generate
-npm.cmd --prefix server run prisma:migrate
-npm.cmd --prefix server run prisma:seed
+python server/manage.py check
+python server/manage.py makemigrations
+python server/manage.py migrate
+python server/manage.py seed_way
+npm.cmd run build:server
 ```
 
-## Backend Overview
+## Django Backend Architecture
 
-The API is mounted at `/api` and includes:
+The API is mounted at `/api` and preserves the frontend contract:
 
 - `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- `GET /api/test/questions`, `POST /api/test/start`, `POST /api/test/answer`, `POST /api/test/submit`
+- `GET /api/test/questions`, `POST /api/test/submit`
 - `GET /api/test/results/latest`, `GET /api/test/results/:id`
 - `GET /api/professions`, `GET /api/professions/:slug`, save/remove/list saved professions
 - `GET /api/profile`, `PATCH /api/profile`
 - `GET /api/guide/topics`, conversations, persisted messages
-- `GET /api/admin/stats`, user list/detail/update/status/role
-- `GET /api/health`
+- `GET /api/admin/stats`, user list/detail/status/role endpoints
 
-Authentication is JWT-based. Passwords are hashed with bcryptjs. Private routes require `Authorization: Bearer <token>`, and admin routes require the `admin` role.
+Authentication uses SimpleJWT. Private routes require `Authorization: Bearer <token>`. Admin routes require the user role `admin`.
 
-## Database
-
-Prisma uses PostgreSQL only. The schema includes users, professions, translated test questions/options, attempts, answers, results, saved professions, guide conversations/messages, result recommendations, and admin audit logs.
+The Django schema includes users, professions, test questions/options, attempts, answers, results, result recommendations, saved professions, guide conversations/messages, and admin audit logs.
 
 ## Career-Test Result Pipeline
 
 The result system is deterministic first and AI-assisted second.
 
-1. `answerScoring.ts` converts each selected option into weighted trait signals such as logic, analytical thinking, creativity, communication, technical interest, helping people, structure, teamwork, independence, visual interest, research orientation, leadership, and organization.
-2. `professionRanking.ts` builds trait profiles for every profession in the existing database catalog. It uses `Profession.scoringTags` plus category fallback weights, then compares the user vector to each profession vector.
-3. `resultNormalization.ts` ranks catalog professions, selects one primary best-fit profession plus three alternatives, and derives normalized match percentages from the computed scores.
-4. Deterministic text fields are generated for summary, strengths, work style, preferred environment, directions, and per-profession reasons.
-5. Groq receives only the locked structured result. It does not see raw answers and cannot decide rankings, invent professions, or change percentages.
+1. `way_api/services/scoring.py` maps selected answers into weighted trait signals such as logic, analytical thinking, creativity, communication, technical interest, helping people, structure, teamwork, independence, visual interest, research orientation, leadership, and organization.
+2. Profession vectors are built from the existing `Profession.scoring_tags` plus category fallback weights.
+3. The backend compares the user vector to every profession vector, ranks catalog professions, selects one primary profession plus three alternatives, and derives normalized match percentages from computed scores.
+4. Deterministic result text is generated for summary, strengths, work style, preferred environment, directions, roadmap, and per-profession reasons.
+5. Groq receives only locked structured ranked data. It cannot invent professions, decide rankings, or change percentages.
 
-The backend persists four recommendations per result: the primary profession and three additional professions. All recommendations come from the existing `Profession` table.
+## AI JSON-Only Behavior
 
-## AI JSON-Only Explanation
-
-Groq runs server-side through `server/src/services/groqService.ts` and is asked for JSON-only output using OpenAI-compatible JSON mode:
+`way_api/services/groq.py` requests strict JSON from Groq for result interpretation:
 
 ```json
 {
-  "primaryProfessionSlug": "backend-developer",
-  "primaryMatchPercent": 89,
+  "primaryProfessionSlug": "ux-designer",
+  "primaryMatchPercent": 92,
   "alternatives": [
-    { "slug": "data-analyst", "matchPercent": 84 },
-    { "slug": "ux-designer", "matchPercent": 78 },
-    { "slug": "cybersecurity-specialist", "matchPercent": 74 }
+    { "slug": "frontend-developer", "matchPercent": 86 },
+    { "slug": "product-manager", "matchPercent": 81 },
+    { "slug": "data-analyst", "matchPercent": 78 }
   ],
   "summary": "short clean explanation",
   "reasoning": ["reason 1", "reason 2", "reason 3"]
 }
 ```
 
-The response is validated with `zod`. Slugs and percentages must exactly match the deterministic backend result. Emoji are stripped. Invalid AI output is retried once; if the model still fails, the API returns a deterministic fallback summary and reasoning bullets.
+The backend verifies that slugs and percentages match the deterministic result exactly. Emoji are stripped. Invalid or unavailable AI output falls back to deterministic summary and reasoning bullets.
+
+## Result Flow Fix
+
+The test completion flow now handles submission as a real async state:
+
+- submit errors are surfaced instead of leaving the user in a dead loading state
+- successful results are persisted in Zustand before navigation
+- navigation to `/results` uses `replace`
+- the results page prefers the freshest backend result over stale local state
+- AI delay or failure does not block a valid deterministic result
+
+## Theme System
+
+The app supports full light and dark modes through CSS design tokens in `src/styles/tokens.css`.
+
+Light mode uses cool off-white surfaces, refined blue/cyan/violet accents, premium gray text hierarchy, subtle borders, and airy shadows.
+
+Dark mode uses deep graphite/navy surfaces, restrained cyan/violet/blue accents, high-contrast text, and controlled glow depth.
+
+Theme state is stored in `way.preferences.v1` through Zustand. The selected mode is applied to `document.documentElement.dataset.theme`, so all pages and the custom 404 route receive the correct tokens.
+
+## Theme Toggle
+
+The header includes a custom animated theme switcher:
+
+- no default checkbox styling
+- smooth thumb transition
+- clear light/dark visual state
+- hover and focus states
+- persisted selection
+- immediate app-wide theme update
+
+## ASCII Logo Animation
+
+The first homepage hero visual now uses `src/components/domain/AsciiWayLogo.tsx` instead of an image block.
+
+The logo is rendered as actual text characters based on the provided ASCII reference. `useAsciiMutation` mutates only visible characters from a curated symbol pool while preserving whitespace and the W.A.Y. silhouette. The block uses cyan/blue/violet glow and responsive sizing for desktop and mobile.
+
+The custom 404 page also uses text-only animated ASCII with a full-screen cinematic layout and rotating typed Russian subtitles via `useTypedRotatingText`.
 
 ## Frontend Integration
 
-The frontend keeps the existing service architecture:
+The frontend keeps the repository architecture:
 
-- Mock services still exist for tests and fallback.
-- `src/services/apiRepositories.ts` contains real API-backed repositories.
-- `src/services/repositories.ts` switches by `VITE_USE_MOCK_API`.
-- `src/services/apiClient.ts` centralizes base URL, JSON handling, and bearer-token injection.
-
-The login/signup, profile, test submit, results, professions save/remove, guide chat, and admin dashboard call the backend. Zustand persists the client session token and useful UI state, never passwords. The results page renders the primary profession separately from the three additional recommendations, uses real match percentages, and shows the validated summary plus short "why it fits" bullets.
-
-## Custom 404 Page
-
-Unknown SPA routes render `src/pages/NotFoundPage.tsx` outside `AppLayout`, so the 404 route has no header, footer, or global navigation.
-
-The 404 page includes:
-
-- a full-screen dark cinematic layout
-- left-side `404...` title, typed rotating Russian subtitle, and keyboard-accessible `Вернуться домой` CTA
-- right-side W.A.Y. ASCII logo rendered with visible text characters only
-- continuous character substitution through `useAsciiMutation`, preserving whitespace and the W.A.Y. silhouette
-- responsive desktop, tablet, and mobile layouts with no page overflow
-
-The typed subtitle rotates every five seconds through `useTypedRotatingText`. The ASCII animation mutates only occupied character positions, so the logo stays recognizable while feeling alive and digital.
-
-## Admin Panel
-
-The `/admin` route is protected in the UI and by the backend. It shows total users, active users, completed tests, saved professions, guide conversations, recent signups, and a searchable user table. Admins can activate/deactivate users and switch user/admin roles. Changes are written to `AdminAuditLog`.
-
-## Landing Motion Fix
-
-The landing page uses a controlled desktop slide stack instead of native page drift:
-
-- one wheel gesture moves one slide
-- transition locking prevents accidental skipping
-- the footer cannot appear during slide navigation
-- the indicator animates smoothly as the active slide changes
-- mobile and reduced-motion users get natural scrolling
-
-The transparent W.A.Y. logo remains integrated in the header and footer through `public/way-logo.png`.
+- `src/services/apiClient.ts` centralizes base URL, JSON handling, DRF error handling, and bearer-token injection
+- `src/services/apiRepositories.ts` maps frontend models to the Django API contract
+- `src/services/repositories.ts` can still switch to mock services with `VITE_USE_MOCK_API=true`
+- Zustand persists auth, language, theme, latest result, saved professions, guide conversations, and test progress
 
 ## Russian-First UX
 
-Russian is the default first-run language. The language switcher persists the chosen locale, and the backend stores `preferredLanguage` per user so W.A.Y. Guide and result explanations can behave Russian-first.
+Russian remains the default first-run language. The language switcher persists the chosen locale, and the backend stores `preferred_language` per user so W.A.Y. Guide and result explanations can remain Russian-first.
 
 ## Security Notes
 
-- Secrets live only in env vars.
-- Groq is called only from the backend.
-- Helmet, CORS, rate limiting, JSON size limits, validation, auth middleware, role middleware, and centralized error handling are enabled.
-- Logs redact secrets by never writing authorization headers.
-- The stateless logout endpoint clears client session state; token revocation/refresh-token rotation can be added later.
+- Secrets live only in environment variables.
+- Groq is called only from Django.
+- JWT auth, CORS restrictions, DRF validation, role checks, and Django password hashing are enabled.
+- The logout endpoint is stateless for the current client flow.
 
 ## Known Limitations
 
 - Email verification, password reset, refresh-token rotation, and production observability are not implemented yet.
 - The frontend bundle still emits a Vite chunk-size warning; route-level lazy loading is the next cleanup.
-- Seed data is intentionally small, but the schema is ready for a larger catalog.
+- Seed data is compact, but the Django schema and scoring services are ready for a larger profession catalog.

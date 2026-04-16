@@ -45,3 +45,23 @@
   --transition-base: 240ms cubic-bezier(0.22, 1, 0.36, 1);
   --container: 1240px;
 }
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --color-canvas: 5 9 18;
+  --color-panel: 14 20 34;
+  --color-elevated: 20 29 48;
+  --color-text: 235 244 255;
+  --color-muted: 148 163 184;
+  --color-line: 45 57 82;
+  --color-soft-line: 30 41 59;
+  --color-accent-cyan: 34 211 238;
+  --color-accent-violet: 167 139 250;
+  --color-accent-blue: 96 165 250;
+  --color-success: 52 211 153;
+  --color-warning: 251 191 36;
+
+  --shadow-card: 0 22px 58px rgb(0 0 0 / 0.28);
+  --shadow-frame: 0 34px 90px rgb(0 0 0 / 0.46);
+  --shadow-glow: 0 18px 70px rgb(var(--color-accent-cyan) / 0.18);
+}

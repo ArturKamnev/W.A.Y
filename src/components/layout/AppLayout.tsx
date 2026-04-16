@@ -11,12 +11,19 @@ export function AppLayout() {
   const { t, i18n } = useTranslation()
   const [open, setOpen] = useState(false)
   const language = usePreferencesStore((state) => state.language)
+  const theme = usePreferencesStore((state) => state.theme)
+  const toggleTheme = usePreferencesStore((state) => state.toggleTheme)
   const session = useAuthStore((state) => state.session)
   const setSession = useAuthStore((state) => state.setSession)
 
   useEffect(() => {
     void i18n.changeLanguage(language)
   }, [i18n, language])
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme
+    document.documentElement.style.colorScheme = theme
+  }, [theme])
 
   const navRoutes = routes.filter((route) => route.showInNav)
 
@@ -47,6 +54,19 @@ export function AppLayout() {
 
               <div className="navbar__actions">
                 <LanguageSwitcher />
+                <button
+                  className="theme-toggle"
+                  type="button"
+                  aria-label={theme === 'light' ? 'Включить темную тему' : 'Включить светлую тему'}
+                  aria-pressed={theme === 'dark'}
+                  onClick={toggleTheme}
+                >
+                  <span className="theme-toggle__track">
+                    <span className="theme-toggle__icon theme-toggle__icon--sun">☼</span>
+                    <span className="theme-toggle__thumb" />
+                    <span className="theme-toggle__icon theme-toggle__icon--moon">●</span>
+                  </span>
+                </button>
                 {session?.user.role === 'admin' ? (
                   <Link className="button button--secondary" to="/admin" onClick={() => setOpen(false)}>
                     {t('nav.admin')}
