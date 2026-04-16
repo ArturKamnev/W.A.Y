@@ -112,7 +112,7 @@
 
   function initReveals(): void {
     const items = Array.from(
-      document.querySelectorAll<HTMLElement>(".section__inner, .card, .profile-panel, .profession-card, .result-card"),
+    document.querySelectorAll<HTMLElement>(".card, .profile-panel, .profession-card, .result-card"),
     ).filter((item) => !item.closest("[data-landing-story]"));
 
     items.forEach((item) => item.classList.add("reveal"));
@@ -130,7 +130,7 @@
           }
         });
       },
-      { threshold: 0.12, rootMargin: "0px 0px -8% 0px" },
+      { threshold: 0.12, rootMargin: "0px 0px -5% 0px" },
     );
 
     items.forEach((item) => observer.observe(item));
