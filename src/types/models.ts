@@ -67,6 +67,8 @@ export interface TestResult {
   summaryKey: string
   summaryRu?: string
   summaryEn?: string
+  reasoningRu?: string[]
+  reasoningEn?: string[]
   strengthsKeys: string[]
   strengthsText?: Array<{ key?: string; ru?: string; en?: string }>
   workStyleKey: string
@@ -75,6 +77,8 @@ export interface TestResult {
   environmentText?: { key?: string; ru?: string; en?: string }
   directionKeys: string[]
   directionsText?: Array<{ key?: string; ru?: string; en?: string }>
+  primaryRecommendation?: CareerRecommendation
+  alternativeRecommendations?: CareerRecommendation[]
   recommendations: CareerRecommendation[]
   roadmap: RoadmapStep[]
   createdAt: string

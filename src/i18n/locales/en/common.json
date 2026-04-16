@@ -177,8 +177,11 @@
     "environmentTitle": "Preferred environment",
     "directionsTitle": "Recommended directions",
     "recommendationsTitle": "Career matches",
+    "primaryMatchTitle": "Primary best-fit profession",
+    "alternativesTitle": "Additional professions to explore",
     "explanationTitle": "How to read this result",
     "explanationBody": "Treat these matches as invitations to explore. A high match is not a fixed future.",
+    "whyFitsTitle": "Why it fits",
     "nextStepsTitle": "Next-step roadmap",
     "emptyLead": "Complete the test to create your first saved direction profile.",
     "status": {

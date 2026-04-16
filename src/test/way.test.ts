@@ -49,7 +49,7 @@ describe('W.A.Y. frontend foundation', () => {
     }
 
     const recommendations = __resultTesting.scoreRecommendations(submission)
-    expect(recommendations).toHaveLength(3)
+    expect(recommendations).toHaveLength(4)
     expect(recommendations[0].matchPercent).toBeGreaterThanOrEqual(recommendations[1].matchPercent)
   })
 

@@ -9,10 +9,17 @@ export function App() {
       <AnimatePresence mode="wait">
         <Routes>
           <Route element={<AppLayout />}>
-            {routes.map((route) => (
+            {routes
+              .filter((route) => route.path !== '*')
+              .map((route) => (
+                <Route key={route.path} path={route.path} element={route.element} />
+              ))}
+          </Route>
+          {routes
+            .filter((route) => route.path === '*')
+            .map((route) => (
               <Route key={route.path} path={route.path} element={route.element} />
             ))}
-          </Route>
         </Routes>
       </AnimatePresence>
     </BrowserRouter>

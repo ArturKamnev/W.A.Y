@@ -28,7 +28,7 @@ function scoreRecommendations(submission: TestSubmission): CareerRecommendation[
   return mockProfessions
     .map((profession) => {
       const raw = (professionTags[profession.id] ?? []).reduce((total, tag) => total + (scores.get(tag) ?? 0), 0)
-      const matchPercent = Math.min(96, Math.max(68, Math.round(72 + raw * 1.9)))
+      const matchPercent = Math.min(96, Math.max(58, Math.round(62 + raw * 2.4)))
 
       return {
         professionId: profession.id,
@@ -37,12 +37,14 @@ function scoreRecommendations(submission: TestSubmission): CareerRecommendation[
       }
     })
     .sort((first, second) => second.matchPercent - first.matchPercent)
-    .slice(0, 3)
+    .slice(0, 4)
 }
 
 export const resultService = {
   async submitTest(submission: TestSubmission): Promise<TestResult> {
     await wait()
+    const recommendations = scoreRecommendations(submission)
+
     latestResult = {
       id: `result-${Date.now()}`,
       profileTitleKey: 'results.profileTitle',
@@ -51,7 +53,19 @@ export const resultService = {
       workStyleKey: 'results.workStyle',
       environmentKey: 'results.environment',
       directionKeys: ['results.directions.digitalProducts', 'results.directions.humanResearch', 'results.directions.learningDesign'],
-      recommendations: scoreRecommendations(submission),
+      reasoningRu: [
+        'Рекомендации рассчитаны по совпадению ответов с профилями профессий.',
+        'Проценты отражают относительную близость к каталогу W.A.Y.',
+        'Дополнительные профессии близки к основному результату, но раскрывают разные варианты среды.',
+      ],
+      reasoningEn: [
+        'Recommendations are calculated by matching answers to profession profiles.',
+        'Percentages reflect relative closeness to the W.A.Y. catalog.',
+        'Additional professions are close to the primary result but point to different work environments.',
+      ],
+      primaryRecommendation: recommendations[0],
+      alternativeRecommendations: recommendations.slice(1, 4),
+      recommendations,
       roadmap: mockRoadmap,
       createdAt: submission.completedAt,
     }

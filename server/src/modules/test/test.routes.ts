@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import type { Prisma } from '@prisma/client'
 import { z } from 'zod'
 import { prisma } from '../../db/prisma.js'
 import { requireAuth } from '../../middleware/auth.js'
@@ -27,6 +28,8 @@ const submitSchema = z.object({
   ),
   completedAt: z.string().optional(),
 })
+
+const toJson = (value: unknown) => value as Prisma.InputJsonValue
 
 testRouter.get(
   '/questions',
@@ -124,8 +127,8 @@ testRouter.post(
     const professions = await prisma.profession.findMany()
     const deterministic = computeResult(savedAnswers.map((answer) => optionToScoredAnswer(answer.selectedOption)), professions)
     const [aiExplanationRu, aiExplanationEn] = await Promise.all([
-      groqService.resultExplanation({ language: 'ru', structuredResult: deterministic }),
-      groqService.resultExplanation({ language: 'en', structuredResult: deterministic }),
+      groqService.resultInterpretation({ language: 'ru', structuredResult: deterministic }),
+      groqService.resultInterpretation({ language: 'en', structuredResult: deterministic }),
     ])
 
     const result = await prisma.$transaction(async (tx) => {
@@ -141,13 +144,15 @@ testRouter.post(
           userId: request.user!.id,
           summaryRu: deterministic.summaryRu,
           summaryEn: deterministic.summaryEn,
-          strengths: deterministic.strengths,
-          workStyle: deterministic.workStyle,
-          preferredEnvironment: deterministic.preferredEnvironment,
-          recommendedDirections: deterministic.recommendedDirections,
-          roadmap: deterministic.roadmap,
-          aiExplanationRu,
-          aiExplanationEn,
+          strengths: toJson(deterministic.strengths),
+          workStyle: toJson(deterministic.workStyle),
+          preferredEnvironment: toJson(deterministic.preferredEnvironment),
+          recommendedDirections: toJson(deterministic.recommendedDirections),
+          roadmap: toJson(deterministic.roadmap),
+          aiExplanationRu: aiExplanationRu.summary,
+          aiExplanationEn: aiExplanationEn.summary,
+          aiReasoningRu: toJson(aiExplanationRu.reasoning),
+          aiReasoningEn: toJson(aiExplanationEn.reasoning),
           recommendations: {
             create: deterministic.recommendations.map((recommendation) => ({
               professionId: recommendation.profession.id,

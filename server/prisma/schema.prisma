@@ -137,6 +137,8 @@ model TestResult {
   roadmap               Json
   aiExplanationRu       String?
   aiExplanationEn       String?
+  aiReasoningRu         Json?
+  aiReasoningEn         Json?
   createdAt             DateTime               @default(now())
   attempt               TestAttempt            @relation(fields: [attemptId], references: [id], onDelete: Cascade)
   user                  User                   @relation(fields: [userId], references: [id], onDelete: Cascade)

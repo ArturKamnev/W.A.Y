@@ -2,7 +2,7 @@
 
 W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished React frontend and a production-style Node.js API.
 
-The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, an admin dashboard, and backend-only Groq integration for AI guidance and result explanations.
+The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, an admin dashboard, deterministic career-test scoring, backend-only Groq integration for controlled explanations, and a custom animated SPA 404 page.
 
 ## Stack
 
@@ -33,6 +33,21 @@ server/                 Express + Prisma backend
     services/           Groq integration
 ```
 
+Key career-test scoring files:
+
+```text
+server/src/modules/test/
+  answerScoring.ts        maps selected answers into a normalized trait vector
+  professionRanking.ts    builds profession vectors and ranks catalog professions
+  resultNormalization.ts  converts ranked scores into final percentages and text payloads
+  scoring.ts              orchestrates the deterministic result pipeline
+  types.ts                shared scoring, ranking, AI, and DTO types
+
+src/hooks/
+  useTypedRotatingText.ts rotates and types 404 subtitle messages
+  useAsciiMutation.ts     animates the character-only W.A.Y. ASCII logo
+```
+
 ## Environment
 
 Frontend `.env`:
@@ -56,7 +71,7 @@ GROQ_MODEL=openai/gpt-oss-120b
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 ```
 
-Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns safe fallback guidance instead of failing the product flow.
+Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns safe deterministic fallback guidance instead of failing the product flow. Groq is called only from the backend.
 
 ## Local Setup
 
@@ -139,7 +154,37 @@ Authentication is JWT-based. Passwords are hashed with bcryptjs. Private routes 
 
 Prisma uses PostgreSQL only. The schema includes users, professions, translated test questions/options, attempts, answers, results, saved professions, guide conversations/messages, result recommendations, and admin audit logs.
 
-The scoring engine is deterministic first: it scores answer tags, derives strengths, work style, environment, directions, and profession matches. Groq then refines the natural-language result explanation, so the product does not depend on raw LLM guessing.
+## Career-Test Result Pipeline
+
+The result system is deterministic first and AI-assisted second.
+
+1. `answerScoring.ts` converts each selected option into weighted trait signals such as logic, analytical thinking, creativity, communication, technical interest, helping people, structure, teamwork, independence, visual interest, research orientation, leadership, and organization.
+2. `professionRanking.ts` builds trait profiles for every profession in the existing database catalog. It uses `Profession.scoringTags` plus category fallback weights, then compares the user vector to each profession vector.
+3. `resultNormalization.ts` ranks catalog professions, selects one primary best-fit profession plus three alternatives, and derives normalized match percentages from the computed scores.
+4. Deterministic text fields are generated for summary, strengths, work style, preferred environment, directions, and per-profession reasons.
+5. Groq receives only the locked structured result. It does not see raw answers and cannot decide rankings, invent professions, or change percentages.
+
+The backend persists four recommendations per result: the primary profession and three additional professions. All recommendations come from the existing `Profession` table.
+
+## AI JSON-Only Explanation
+
+Groq runs server-side through `server/src/services/groqService.ts` and is asked for JSON-only output using OpenAI-compatible JSON mode:
+
+```json
+{
+  "primaryProfessionSlug": "backend-developer",
+  "primaryMatchPercent": 89,
+  "alternatives": [
+    { "slug": "data-analyst", "matchPercent": 84 },
+    { "slug": "ux-designer", "matchPercent": 78 },
+    { "slug": "cybersecurity-specialist", "matchPercent": 74 }
+  ],
+  "summary": "short clean explanation",
+  "reasoning": ["reason 1", "reason 2", "reason 3"]
+}
+```
+
+The response is validated with `zod`. Slugs and percentages must exactly match the deterministic backend result. Emoji are stripped. Invalid AI output is retried once; if the model still fails, the API returns a deterministic fallback summary and reasoning bullets.
 
 ## Frontend Integration
 
@@ -150,7 +195,21 @@ The frontend keeps the existing service architecture:
 - `src/services/repositories.ts` switches by `VITE_USE_MOCK_API`.
 - `src/services/apiClient.ts` centralizes base URL, JSON handling, and bearer-token injection.
 
-The login/signup, profile, test submit, results, professions save/remove, guide chat, and admin dashboard now call the backend. Zustand persists the client session token and useful UI state, never passwords.
+The login/signup, profile, test submit, results, professions save/remove, guide chat, and admin dashboard call the backend. Zustand persists the client session token and useful UI state, never passwords. The results page renders the primary profession separately from the three additional recommendations, uses real match percentages, and shows the validated summary plus short "why it fits" bullets.
+
+## Custom 404 Page
+
+Unknown SPA routes render `src/pages/NotFoundPage.tsx` outside `AppLayout`, so the 404 route has no header, footer, or global navigation.
+
+The 404 page includes:
+
+- a full-screen dark cinematic layout
+- left-side `404...` title, typed rotating Russian subtitle, and keyboard-accessible `Вернуться домой` CTA
+- right-side W.A.Y. ASCII logo rendered with visible text characters only
+- continuous character substitution through `useAsciiMutation`, preserving whitespace and the W.A.Y. silhouette
+- responsive desktop, tablet, and mobile layouts with no page overflow
+
+The typed subtitle rotates every five seconds through `useTypedRotatingText`. The ASCII animation mutates only occupied character positions, so the logo stays recognizable while feeling alive and digital.
 
 ## Admin Panel
 

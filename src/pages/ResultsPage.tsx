@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { Badge, Button, Card, Section } from '../components/ui'
-import { RecommendationList, ResultCard } from '../components/domain/Cards'
+import { CareerCard, RecommendationList, ResultCard } from '../components/domain/Cards'
 import { repositories } from '../services/repositories'
 import { useSavedItemsStore } from '../store/useStores'
 import type { Profession, TestResult } from '../types/models'
@@ -49,6 +49,9 @@ export function ResultsPage() {
   const directions = result.directionsText?.length
     ? result.directionsText.map((item) => (i18n.language === 'ru' && item.ru ? item.ru : item.en ?? t(item.key ?? 'results.directions.digitalProducts')))
     : result.directionKeys.map((key) => t(key))
+  const primaryRecommendation = result.primaryRecommendation ?? result.recommendations[0]
+  const primaryProfession = primaryRecommendation ? professions.find((item) => item.id === primaryRecommendation.professionId) : undefined
+  const reasoning = i18n.language === 'ru' && result.reasoningRu?.length ? result.reasoningRu : result.reasoningEn ?? []
 
   return (
     <>
@@ -77,7 +80,22 @@ export function ResultsPage() {
         </div>
       </Section>
 
-      <Section title={t('results.recommendationsTitle')} compact>
+      {primaryRecommendation && primaryProfession ? (
+        <Section title={t('results.primaryMatchTitle')} compact>
+          <div className="primary-match">
+            <CareerCard
+              profession={primaryProfession}
+              matchPercent={primaryRecommendation.matchPercent}
+              reasonKey={primaryRecommendation.reasonKey}
+              reasonRu={primaryRecommendation.reasonRu}
+              reasonEn={primaryRecommendation.reasonEn}
+              featured
+            />
+          </div>
+        </Section>
+      ) : null}
+
+      <Section title={t('results.alternativesTitle')} compact>
         <RecommendationList result={result} professions={professions} />
       </Section>
 
@@ -92,6 +110,16 @@ export function ResultsPage() {
             <p>{environment}</p>
           </Card>
         </div>
+        {reasoning.length ? (
+          <Card className="result-card result-card--reasoning" style={{ marginTop: 'var(--space-5)' }}>
+            <h3>{t('results.whyFitsTitle')}</h3>
+            <ul className="reason-list">
+              {reasoning.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </Card>
+        ) : null}
       </Section>
 
       <Section title={t('results.nextStepsTitle')} compact>

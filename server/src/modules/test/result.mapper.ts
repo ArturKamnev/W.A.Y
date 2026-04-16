@@ -10,6 +10,16 @@ export function toResultDto(
   const environment = result.preferredEnvironment as { key?: string; ru?: string; en?: string }
   const directions = result.recommendedDirections as Array<{ key?: string; ru?: string; en?: string }>
   const roadmap = result.roadmap as Array<{ id: string; titleKey: string; descriptionKey: string; status: 'next' | 'later' | 'done' }>
+  const aiReasoningRu = Array.isArray(result.aiReasoningRu) ? result.aiReasoningRu.filter((item): item is string => typeof item === 'string') : []
+  const aiReasoningEn = Array.isArray(result.aiReasoningEn) ? result.aiReasoningEn.filter((item): item is string => typeof item === 'string') : []
+  const recommendations = [...result.recommendations].sort((first, second) => second.matchPercent - first.matchPercent)
+  const recommendationDtos = recommendations.map((recommendation) => ({
+    professionId: recommendation.profession.slug,
+    matchPercent: recommendation.matchPercent,
+    reasonKey: `results.reasons.${slugToCamel(recommendation.profession.slug)}`,
+    reasonRu: recommendation.reasonRu,
+    reasonEn: recommendation.reasonEn,
+  }))
 
   return {
     id: result.id,
@@ -25,13 +35,11 @@ export function toResultDto(
     environmentText: environment,
     directionKeys: directions.map((item) => item.key ?? 'results.directions.digitalProducts'),
     directionsText: directions,
-    recommendations: result.recommendations.map((recommendation) => ({
-      professionId: recommendation.profession.slug,
-      matchPercent: recommendation.matchPercent,
-      reasonKey: `results.reasons.${slugToCamel(recommendation.profession.slug)}`,
-      reasonRu: recommendation.reasonRu,
-      reasonEn: recommendation.reasonEn,
-    })),
+    reasoningRu: aiReasoningRu,
+    reasoningEn: aiReasoningEn,
+    primaryRecommendation: recommendationDtos[0],
+    alternativeRecommendations: recommendationDtos.slice(1, 4),
+    recommendations: recommendationDtos,
     roadmap,
     createdAt: result.createdAt.toISOString(),
   }

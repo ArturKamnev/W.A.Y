@@ -8,12 +8,13 @@ interface CareerCardProps {
   reasonKey?: string
   reasonRu?: string
   reasonEn?: string
+  featured?: boolean
   saved?: boolean
   onDetails?: () => void
   onSave?: () => void
 }
 
-export function CareerCard({ profession, matchPercent, reasonKey, reasonRu, reasonEn, saved, onDetails, onSave }: CareerCardProps) {
+export function CareerCard({ profession, matchPercent, reasonKey, reasonRu, reasonEn, featured, saved, onDetails, onSave }: CareerCardProps) {
   const { t, i18n } = useTranslation()
   const title = i18n.language === 'ru' && profession.titleRu ? profession.titleRu : profession.titleEn ?? t(profession.titleKey)
   const description =
@@ -21,7 +22,7 @@ export function CareerCard({ profession, matchPercent, reasonKey, reasonRu, reas
   const reason = i18n.language === 'ru' && reasonRu ? reasonRu : reasonEn
 
   return (
-    <Card className="profession-card">
+    <Card className={`profession-card${featured ? ' profession-card--featured' : ''}`}>
       <Badge>{t(profession.fitTagKey)}</Badge>
       <h3>{title}</h3>
       <p>{description}</p>
@@ -73,9 +74,13 @@ export function RecommendationList({
   result: TestResult
   professions: Profession[]
 }) {
+  const recommendations = result.alternativeRecommendations?.length
+    ? result.alternativeRecommendations
+    : result.recommendations.slice(1, 4)
+
   return (
     <div className="grid grid--3">
-      {result.recommendations.map((recommendation: CareerRecommendation) => {
+      {recommendations.map((recommendation: CareerRecommendation) => {
         const profession = professions.find((item) => item.id === recommendation.professionId)
         if (!profession) return null
 

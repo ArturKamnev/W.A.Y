@@ -169,6 +169,16 @@ async function main() {
       roadmap: mockRoadmap,
       aiExplanationRu: 'Это демо-объяснение можно заменить ответом Groq после добавления ключа.',
       aiExplanationEn: 'This demo explanation can be replaced by Groq after adding an API key.',
+      aiReasoningRu: [
+        'Демо-результат опирается на детерминированный профиль ответов.',
+        'Проценты не изменяются AI-моделью.',
+        'Дополнительные профессии показывают близкие, но разные траектории.',
+      ],
+      aiReasoningEn: [
+        'The demo result is based on a deterministic answer profile.',
+        'Percentages are not changed by the AI model.',
+        'Additional professions show close but different trajectories.',
+      ],
       recommendations: {
         create: [
           { professionId: ux.id, matchPercent: 92, reasonRu: 'Эмпатия и визуальное мышление.', reasonEn: 'Empathy and visual thinking.' },
