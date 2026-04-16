@@ -1,6 +1,6 @@
-{% load static %}
+{% load static way_extras %}
 <!doctype html>
-<html lang="ru" data-theme="light">
+<html lang="{{ current_language }}" data-theme="light">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -21,13 +21,23 @@
               <span class="brand__text">Who Are You</span>
             </a>
             <div class="navbar__drawer" data-nav-drawer data-open="false">
-              <nav class="navbar__links" aria-label="Главная навигация">
-                {% for key,label,url_name in nav_items %}
-                  <a class="{% if active_nav == key %}is-active{% endif %}" href="{% url url_name %}">{{ label }}</a>
+              <nav class="navbar__links" aria-label="{% ui 'nav.aria' %}">
+                {% for key,label_key,url_name in nav_items %}
+                  <a class="{% if active_nav == key %}is-active{% endif %}" href="{% url url_name %}">{% ui label_key %}</a>
                 {% endfor %}
               </nav>
               <div class="navbar__actions">
-                <button class="theme-toggle" type="button" data-theme-toggle aria-label="Переключить тему">
+                <form class="language-switcher" method="post" action="{% url 'web:set_language' %}" data-language-form>
+                  {% csrf_token %}
+                  <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                  <label class="sr-only" for="language-select">{% ui 'language.label' %}</label>
+                  <select id="language-select" name="language" aria-label="{% ui 'language.label' %}">
+                    {% for code,label in languages.items %}
+                      <option value="{{ code }}" {% if current_language == code %}selected{% endif %}>{% language_name code %}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+                <button class="theme-toggle" type="button" data-theme-toggle aria-label="{% ui 'theme.toggle' %}">
                   <span class="theme-toggle__track">
                     <span class="theme-toggle__icon">☼</span>
                     <span class="theme-toggle__thumb"></span>
@@ -36,21 +46,21 @@
                 </button>
                 {% if request.user.is_authenticated %}
                   {% if request.user.role == 'admin' %}
-                    <a class="button button--secondary" href="{% url 'web:admin' %}">Админ</a>
+                    <a class="button button--secondary" href="{% url 'web:admin' %}">{% ui 'nav.admin' %}</a>
                   {% endif %}
-                  <a class="button button--ghost" href="{% url 'web:profile' %}">Профиль</a>
+                  <a class="button button--ghost" href="{% url 'web:profile' %}">{% ui 'nav.profile' %}</a>
                   <form method="post" action="{% url 'web:logout' %}">
                     {% csrf_token %}
-                    <button class="button button--ghost" type="submit">Выйти</button>
+                    <button class="button button--ghost" type="submit">{% ui 'nav.logout' %}</button>
                   </form>
                 {% else %}
-                  <a class="button button--ghost" href="{% url 'web:login' %}">Войти</a>
-                  <a class="button button--secondary" href="{% url 'web:signup' %}">Регистрация</a>
+                  <a class="button button--ghost" href="{% url 'web:login' %}">{% ui 'nav.login' %}</a>
+                  <a class="button button--secondary" href="{% url 'web:signup' %}">{% ui 'nav.signup' %}</a>
                 {% endif %}
-                <a class="button button--primary" href="{% url 'web:onboarding' %}">Начать</a>
+                <a class="button button--primary" href="{% url 'web:onboarding' %}">{% ui 'nav.start' %}</a>
               </div>
             </div>
-            <button class="button button--secondary nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="Открыть меню">☰</button>
+            <button class="button button--secondary nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-label="{% ui 'nav.open' %}">☰</button>
           </div>
         </header>
 
@@ -77,8 +87,8 @@
             </div>
             <div class="grid">
               <h3>W.A.Y.</h3>
-              <a href="{% url 'web:about' %}">О проекте</a>
-              <a href="{% url 'web:professions' %}">Профессии</a>
+              <a href="{% url 'web:about' %}">{% ui 'nav.about' %}</a>
+              <a href="{% url 'web:professions' %}">{% ui 'nav.professions' %}</a>
               <a href="{% url 'web:guide' %}">Guide</a>
             </div>
             <div class="grid">

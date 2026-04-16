@@ -1,12 +1,16 @@
 {% extends "way/base.html" %}
+{% load way_extras %}
+
 {% block title %}Профиль — W.A.Y.{% endblock %}
+
 {% block content %}
 <section class="section">
   <div class="section__inner">
-    <p class="eyebrow">Профиль</p>
+    <p class="eyebrow">{% ui "nav.profile" %}</p>
     <h1 class="title">{{ request.user.name }}</h1>
     <p class="lead">{{ request.user.email }}</p>
-    <div class="profile-layout" style="margin-top:2rem">
+
+    <div class="profile-layout profile-layout--polished">
       <aside class="grid">
         <div class="card profile-panel">
           <h3>Настройки</h3>
@@ -19,42 +23,53 @@
                 {{ field.errors }}
               </div>
             {% endfor %}
-            <button class="button button--primary" type="submit">Сохранить</button>
+            <button class="button button--primary" type="submit">{% ui "common.save" %}</button>
           </form>
         </div>
       </aside>
+
       <div class="grid">
         <div class="card profile-panel">
           <h3>Последний результат</h3>
           {% if latest %}
-            <p>{{ latest.ai_explanation_ru|default:latest.summary_ru }}</p>
+            {% if current_language == "en" %}
+              <p>{{ latest.ai_explanation_en|default:latest.summary_en }}</p>
+            {% else %}
+              <p>{{ latest.ai_explanation_ru|default:latest.summary_ru }}</p>
+            {% endif %}
             <a class="button button--secondary" href="{% url 'web:result_detail' latest.id %}">Открыть результат</a>
           {% else %}
             <p>Результата пока нет.</p>
-            <a class="button button--primary" href="{% url 'web:test' %}">Пройти тест</a>
+            <a class="button button--primary" href="{% url 'web:test' %}">{% ui "home.test" %}</a>
           {% endif %}
         </div>
+
         <div>
           <h2>Сохраненные профессии</h2>
-          <div class="grid grid--2">
+          <div class="grid grid--2 saved-professions">
             {% for item in saved %}
               <article class="card profession-card">
-                <h3>{{ item.profession.title_ru }}</h3>
-                <p>{{ item.profession.description_ru }}</p>
-                <a class="button button--secondary" href="{% url 'web:profession_detail' item.profession.slug %}">Подробнее</a>
+                <span class="badge">{{ item.profession.category|category_label:current_language }}</span>
+                <h3>{{ item.profession|localized_title:current_language }}</h3>
+                <p>{{ item.profession|localized_description:current_language }}</p>
+                <a class="button button--secondary" href="{% url 'web:profession_detail' item.profession.slug %}">{% ui "common.more" %}</a>
               </article>
             {% empty %}
-              <div class="card value-card"><p>Пока нет сохраненных профессий.</p></div>
+              <div class="card value-card">
+                <p>Пока нет сохраненных профессий.</p>
+                <a class="button button--secondary" href="{% url 'web:professions' %}">{% ui "home.professions" %}</a>
+              </div>
             {% endfor %}
           </div>
         </div>
+
         <div class="card profile-panel">
           <h3>Недавние разговоры</h3>
           <div class="tag-list">
             {% for conversation in conversations %}
-              <span class="badge">{{ conversation.title }}</span>
+              <span class="badge badge--chip">{{ conversation.title }}</span>
             {% empty %}
-              <span class="badge">Пока нет разговоров</span>
+              <span class="badge badge--chip">Пока нет разговоров</span>
             {% endfor %}
           </div>
         </div>

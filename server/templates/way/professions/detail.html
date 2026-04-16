@@ -1,21 +1,22 @@
 {% extends "way/base.html" %}
-{% block title %}{{ profession.title_ru }} — W.A.Y.{% endblock %}
+{% load way_extras %}
+{% block title %}{{ profession|localized_title:current_language }} — W.A.Y.{% endblock %}
 {% block content %}
 <section class="section">
   <div class="section__inner">
-    <p class="eyebrow">{{ profession.category }}</p>
-    <h1 class="title">{{ profession.title_ru }}</h1>
-    <p class="lead">{{ profession.description_ru }}</p>
-    <div class="page-actions" style="margin-top:1.5rem">
+    <p class="eyebrow">{{ profession.category|category_label:current_language }}</p>
+    <h1 class="title">{{ profession|localized_title:current_language }}</h1>
+    <p class="lead">{{ profession|localized_description:current_language }}</p>
+    <div class="page-actions detail-actions">
       {% if request.user.is_authenticated %}
         <form method="post" action="{% url 'web:toggle_profession' profession.slug %}">
           {% csrf_token %}
-          <button class="button {% if saved %}button--danger{% else %}button--primary{% endif %}" type="submit">{% if saved %}Убрать из сохраненных{% else %}Сохранить профессию{% endif %}</button>
+          <button class="button {% if saved %}button--danger{% else %}button--primary{% endif %}" type="submit">{% if saved %}{% ui 'common.remove' %}{% else %}{% ui 'common.save' %}{% endif %}</button>
         </form>
       {% else %}
-        <a class="button button--primary" href="{% url 'web:login' %}">Войти, чтобы сохранить</a>
+        <a class="button button--primary" href="{% url 'web:login' %}">{% ui 'nav.login' %}</a>
       {% endif %}
-      <a class="button button--secondary" href="{% url 'web:professions' %}">Назад к каталогу</a>
+      <a class="button button--secondary" href="{% url 'web:professions' %}">{% ui 'common.back' %}</a>
     </div>
   </div>
 </section>
@@ -23,19 +24,23 @@
   <div class="section__inner grid grid--3">
     <article class="card value-card">
       <h3>Что делает</h3>
-      <p>{{ profession.description_ru }}</p>
+      <p>{{ profession|localized_description:current_language }}</p>
     </article>
     <article class="card value-card">
       <h3>Навыки</h3>
       <div class="tag-list">
         {% for skill in profession.skills %}
-          <span class="badge">{{ skill }}</span>
+          <span class="badge badge--chip">{{ skill|skill_label:current_language }}</span>
         {% endfor %}
       </div>
     </article>
     <article class="card value-card">
       <h3>Почему может подойти</h3>
-      <p>Эта профессия связана с признаками: {{ profession.scoring_tags|join:", " }}.</p>
+      <div class="tag-list">
+        {% for tag in profession.scoring_tags %}
+          <span class="badge badge--chip">{{ tag|tag_label:current_language }}</span>
+        {% endfor %}
+      </div>
     </article>
   </div>
 </section>

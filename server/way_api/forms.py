@@ -50,7 +50,11 @@ class ProfileForm(forms.ModelForm):
         model = User
         fields = ["name", "preferred_language"]
         labels = {"name": "Имя", "preferred_language": "Язык"}
-        widgets = {"preferred_language": forms.Select(choices=(("ru", "Русский"), ("en", "English")))}
+        widgets = {
+            "preferred_language": forms.Select(
+                choices=(("ru", "Русский"), ("en", "English"), ("ky", "Кыргызча"))
+            )
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

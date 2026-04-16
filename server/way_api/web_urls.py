@@ -10,6 +10,7 @@ urlpatterns = [
     path("onboarding/", web_views.onboarding, name="onboarding"),
     path("login/", web_views.login_view, name="login"),
     path("signup/", web_views.signup_view, name="signup"),
+    path("language/", web_views.set_language, name="set_language"),
     path("logout/", web_views.logout_view, name="logout"),
     path("professions/", web_views.professions, name="professions"),
     path("professions/<slug:slug>/", web_views.profession_detail, name="profession_detail"),

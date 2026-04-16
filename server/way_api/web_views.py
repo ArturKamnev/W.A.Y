@@ -8,34 +8,49 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 
 from way_api.forms import LoginForm, ProfileForm, SignupForm
+from way_api.i18n import LANGUAGES, normalize_language
 from way_api.models import GuideConversation, GuideMessage, Profession, SavedProfession, TestQuestion, TestQuestionOption, TestResult, User
 from way_api.services.groq import guide_reply
 from way_api.services.results import create_result
 
 
 NAV_ITEMS = [
-    ("home", "Главная", "web:home"),
-    ("about", "О проекте", "web:about"),
-    ("professions", "Профессии", "web:professions"),
-    ("guide", "W.A.Y. Guide", "web:guide"),
+    ("home", "nav.home", "web:home"),
+    ("about", "nav.about", "web:about"),
+    ("professions", "nav.professions", "web:professions"),
+    ("guide", "nav.guide", "web:guide"),
 ]
 
 
-def base_context(active=None):
-    return {"nav_items": NAV_ITEMS, "active_nav": active}
+def current_language(request):
+    if "language" in request.GET:
+        request.session["way_language"] = normalize_language(request.GET["language"])
+    stored = request.session.get("way_language")
+    if request.user.is_authenticated and getattr(request.user, "preferred_language", None) in LANGUAGES:
+        return normalize_language(stored or request.user.preferred_language)
+    return normalize_language(stored)
+
+
+def base_context(request, active=None):
+    return {
+        "nav_items": NAV_ITEMS,
+        "active_nav": active,
+        "languages": LANGUAGES,
+        "current_language": current_language(request),
+    }
 
 
 def home(request):
     professions = Profession.objects.all()[:3]
-    return render(request, "way/home.html", {**base_context("home"), "professions": professions})
+    return render(request, "way/home.html", {**base_context(request, "home"), "professions": professions})
 
 
 def about(request):
-    return render(request, "way/about.html", base_context("about"))
+    return render(request, "way/about.html", base_context(request, "about"))
 
 
 def onboarding(request):
-    return render(request, "way/onboarding.html", base_context("onboarding"))
+    return render(request, "way/onboarding.html", base_context(request, "onboarding"))
 
 
 def login_view(request):
@@ -45,7 +60,7 @@ def login_view(request):
     if request.method == "POST" and form.is_valid():
         login(request, form.cleaned_data["user"])
         return redirect(request.GET.get("next") or "web:profile")
-    return render(request, "way/auth/login.html", {**base_context(), "form": form})
+    return render(request, "way/auth/login.html", {**base_context(request), "form": form})
 
 
 def signup_view(request):
@@ -56,7 +71,17 @@ def signup_view(request):
         user = form.save()
         login(request, user)
         return redirect("web:profile")
-    return render(request, "way/auth/signup.html", {**base_context(), "form": form})
+    return render(request, "way/auth/signup.html", {**base_context(request), "form": form})
+
+
+@require_POST
+def set_language(request):
+    language = normalize_language(request.POST.get("language"))
+    request.session["way_language"] = language
+    if request.user.is_authenticated:
+        request.user.preferred_language = language
+        request.user.save(update_fields=["preferred_language"])
+    return redirect(request.POST.get("next") or "web:home")
 
 
 @require_POST
@@ -79,7 +104,7 @@ def professions(request):
     return render(
         request,
         "way/professions/list.html",
-        {**base_context("professions"), "professions": queryset, "category": category, "query": query, "saved_ids": saved_ids},
+        {**base_context(request, "professions"), "professions": queryset, "category": category, "query": query, "saved_ids": saved_ids},
     )
 
 
@@ -87,7 +112,7 @@ def profession_detail(request, slug):
     profession = get_object_or_404(Profession, slug=slug)
     saved = request.user.is_authenticated and SavedProfession.objects.filter(user=request.user, profession=profession).exists()
     related = Profession.objects.filter(slug__in=(profession.details or {}).get("relatedIds", []))
-    return render(request, "way/professions/detail.html", {**base_context("professions"), "profession": profession, "saved": saved, "related": related})
+    return render(request, "way/professions/detail.html", {**base_context(request, "professions"), "profession": profession, "saved": saved, "related": related})
 
 
 @login_required
@@ -120,14 +145,14 @@ def career_test(request):
             result = create_result(request.user, selected_options)
             request.session.pop("way_test_answers", None)
             return redirect("web:result_detail", result_id=result.id)
-    return render(request, "way/test.html", {**base_context("test"), "questions": questions})
+    return render(request, "way/test.html", {**base_context(request, "test"), "questions": questions})
 
 
 @login_required
 def latest_result(request):
     result = TestResult.objects.filter(user=request.user).prefetch_related("recommendations__profession").first()
     if not result:
-        return render(request, "way/results/empty.html", base_context("results"))
+        return render(request, "way/results/empty.html", base_context(request, "results"))
     return redirect("web:result_detail", result_id=result.id)
 
 
@@ -140,7 +165,7 @@ def result_detail(request, result_id):
     return render(
         request,
         "way/results/detail.html",
-        {**base_context("results"), "result": result, "primary": primary, "alternatives": alternatives, "recommendations": recommendations},
+        {**base_context(request, "results"), "result": result, "primary": primary, "alternatives": alternatives, "recommendations": recommendations},
     )
 
 
@@ -161,7 +186,7 @@ def guide(request):
         ("wrong", "Мне кажется, результат не совсем про меня."),
         ("plan", "Составь спокойный план на неделю."),
     ]
-    return render(request, "way/guide.html", {**base_context("guide"), "conversation": conversation, "conversations": conversations, "topics": topics})
+    return render(request, "way/guide.html", {**base_context(request, "guide"), "conversation": conversation, "conversations": conversations, "topics": topics})
 
 
 @login_required
@@ -195,14 +220,14 @@ def profile(request):
     saved = SavedProfession.objects.filter(user=request.user).select_related("profession")
     latest = TestResult.objects.filter(user=request.user).first()
     conversations = GuideConversation.objects.filter(user=request.user)[:5]
-    return render(request, "way/profile.html", {**base_context("profile"), "form": form, "saved": saved, "latest": latest, "conversations": conversations})
+    return render(request, "way/profile.html", {**base_context(request, "profile"), "form": form, "saved": saved, "latest": latest, "conversations": conversations})
 
 
 def admin_required(view):
     @login_required
     def wrapper(request, *args, **kwargs):
         if request.user.role != User.Role.ADMIN:
-            return render(request, "way/admin/forbidden.html", base_context("admin"), status=403)
+            return render(request, "way/admin/forbidden.html", base_context(request, "admin"), status=403)
         return view(request, *args, **kwargs)
 
     return wrapper
@@ -218,7 +243,7 @@ def admin_dashboard(request):
         "savedProfessions": SavedProfession.objects.count(),
         "guideConversations": GuideConversation.objects.count(),
     }
-    return render(request, "way/admin/dashboard.html", {**base_context("admin"), "users": users, "stats": stats})
+    return render(request, "way/admin/dashboard.html", {**base_context(request, "admin"), "users": users, "stats": stats})
 
 
 @admin_required
@@ -243,4 +268,4 @@ def admin_user_role(request, user_id):
 
 
 def not_found(request, exception=None):
-    return render(request, "way/404.html", status=404)
+    return render(request, "way/404.html", base_context(request), status=404)

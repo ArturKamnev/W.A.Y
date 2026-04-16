@@ -1,4 +1,5 @@
 {% extends "way/base.html" %}
+{% load way_extras %}
 {% block title %}Карьерный тест — W.A.Y.{% endblock %}
 {% block content %}
 <section class="section">
@@ -6,18 +7,18 @@
     <p class="eyebrow">Тест</p>
     <h1 class="title">Ответь спокойно и честно.</h1>
     <p class="lead">Можно ответить на все вопросы сразу. Чем больше ответов, тем точнее профиль.</p>
-    <form class="grid" method="post" data-test-form style="margin-top:2rem">
+    <form class="grid test-form" method="post" data-test-form>
       {% csrf_token %}
       <div class="progress" aria-hidden="true"><span data-progress style="width:0%"></span></div>
       {% for question in questions %}
         <fieldset class="card question-card" data-question>
           <legend><span class="badge">{{ forloop.counter }} / {{ questions|length }}</span></legend>
-          <h2>{{ question.text_ru }}</h2>
+          <h2>{{ question|question_text:current_language }}</h2>
           <div class="option-grid">
             {% for option in question.options.all %}
               <label class="option">
                 <input type="radio" name="question_{{ question.id }}" value="{{ option.id }}">
-                {{ option.label_ru }}
+                {{ option|option_label:current_language }}
               </label>
             {% endfor %}
           </div>
@@ -25,7 +26,7 @@
       {% endfor %}
       <div class="test-controls">
         <button class="button button--primary" type="submit">Посмотреть результат</button>
-        <a class="button button--secondary" href="{% url 'web:professions' %}">Пока изучить профессии</a>
+        <a class="button button--secondary" href="{% url 'web:professions' %}">{% ui 'home.professions' %}</a>
       </div>
     </form>
   </div>

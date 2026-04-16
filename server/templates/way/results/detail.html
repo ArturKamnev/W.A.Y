@@ -6,8 +6,8 @@
   <div class="section__inner">
     <p class="eyebrow">Результат</p>
     <h1 class="title">Твой карьерный профиль готов.</h1>
-    <p class="lead">{{ result.ai_explanation_ru|default:result.summary_ru }}</p>
-    <div class="page-actions" style="margin-top:1.5rem">
+    <p class="lead">{% if current_language == 'en' %}{{ result.ai_explanation_en|default:result.summary_en }}{% else %}{{ result.ai_explanation_ru|default:result.summary_ru }}{% endif %}</p>
+    <div class="page-actions result-actions">
       <a class="button button--primary" href="{% url 'web:guide' %}">Обсудить с Guide</a>
       <a class="button button--secondary" href="{% url 'web:test' %}">Пройти заново</a>
     </div>
@@ -18,11 +18,11 @@
   <div class="section__inner">
     <article class="card profession-card primary-match">
       <span class="badge">Основное совпадение</span>
-      <h2>{{ primary.profession.title_ru }}</h2>
+      <h2>{{ primary.profession|localized_title:current_language }}</h2>
       <div class="match__value">{{ primary.match_percent }}%</div>
       <div class="progress"><span style="width:{{ primary.match_percent|percent_width }}%"></span></div>
-      <p>{{ primary.reason_ru }}</p>
-      <a class="button button--secondary" href="{% url 'web:profession_detail' primary.profession.slug %}">Открыть профессию</a>
+      <p>{% if current_language == 'en' %}{{ primary.reason_en }}{% else %}{{ primary.reason_ru }}{% endif %}</p>
+      <a class="button button--secondary" href="{% url 'web:profession_detail' primary.profession.slug %}">{% ui 'common.more' %}</a>
     </article>
   </div>
 </section>
@@ -33,10 +33,10 @@
     <div class="grid grid--3">
       {% for recommendation in alternatives %}
         <article class="card profession-card">
-          <h3>{{ recommendation.profession.title_ru }}</h3>
+          <h3>{{ recommendation.profession|localized_title:current_language }}</h3>
           <div class="match__value">{{ recommendation.match_percent }}%</div>
           <div class="progress"><span style="width:{{ recommendation.match_percent|percent_width }}%"></span></div>
-          <p>{{ recommendation.reason_ru }}</p>
+          <p>{% if current_language == 'en' %}{{ recommendation.reason_en }}{% else %}{{ recommendation.reason_ru }}{% endif %}</p>
         </article>
       {% endfor %}
     </div>
@@ -47,23 +47,21 @@
     <article class="card result-card">
       <h3>Почему это подходит</h3>
       <ol class="reason-list">
-        {% for reason in result.ai_reasoning_ru %}
-          <li>{{ reason }}</li>
-        {% empty %}
-          <li>Профессии выбраны из каталога W.A.Y. по совпадению с твоим профилем.</li>
-          <li>Проценты рассчитаны до AI-этапа и не меняются моделью.</li>
-          <li>Альтернативы показывают близкие, но разные рабочие среды.</li>
-        {% endfor %}
+        {% if current_language == 'en' %}
+          {% for reason in result.ai_reasoning_en %}<li>{{ reason }}</li>{% endfor %}
+        {% else %}
+          {% for reason in result.ai_reasoning_ru %}<li>{{ reason }}</li>{% endfor %}
+        {% endif %}
       </ol>
     </article>
     <article class="card result-card">
       <h3>Сильные сигналы</h3>
       <div class="tag-list">
         {% for item in result.strengths %}
-          <span class="badge">{{ item.ru|default:item.en }}</span>
+          <span class="badge badge--chip">{{ item|localized_text:current_language }}</span>
         {% endfor %}
       </div>
-      <p>{{ result.work_style.ru }}</p>
+      <p>{{ result.work_style|localized_text:current_language }}</p>
     </article>
   </div>
 </section>

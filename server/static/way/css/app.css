@@ -70,6 +70,14 @@ button, input, select, textarea { font: inherit; }
 button { cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: 0.58; }
 :focus-visible { outline: 2px solid rgb(var(--blue)); outline-offset: 3px; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
 
 .app-shell { min-height: 100vh; padding: 2rem; }
 .product-frame {
@@ -138,6 +146,33 @@ button:disabled { cursor: not-allowed; opacity: 0.58; }
 }
 .nav-toggle { display: none; width: 2.875rem; padding-inline: 0; }
 .navbar form { margin: 0; }
+.language-switcher {
+  position: relative;
+}
+.language-switcher select {
+  min-height: 2.35rem;
+  min-width: 4.8rem;
+  border: 1px solid rgb(var(--line));
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.86), rgb(var(--elevated) / 0.88));
+  color: rgb(var(--text));
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  padding: 0 2rem 0 0.95rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7), 0 10px 24px rgb(31 49 86 / 0.06);
+  transition: transform 160ms var(--ease), border-color 160ms var(--ease), box-shadow 160ms var(--ease), background 160ms var(--ease);
+}
+.language-switcher select:hover {
+  transform: translateY(-1px);
+  border-color: rgb(var(--blue) / 0.36);
+  box-shadow: 0 14px 30px rgb(var(--blue) / 0.1);
+}
+:root[data-theme="dark"] .language-switcher select {
+  border-color: rgb(125 211 252 / 0.22);
+  background: linear-gradient(180deg, rgb(30 41 59 / 0.86), rgb(15 23 42 / 0.92));
+}
 
 .theme-toggle {
   width: 4.25rem;
@@ -314,6 +349,24 @@ h1, h2, h3, p { margin-top: 0; }
   background: linear-gradient(180deg, rgb(30 41 59 / 0.86), rgb(15 23 42 / 0.92));
   box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08), 0 8px 24px rgb(0 0 0 / 0.16);
 }
+.badge--chip {
+  min-height: 2rem;
+  border-color: rgb(var(--blue) / 0.18);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(var(--cyan) / 0.13), transparent 4rem),
+    linear-gradient(180deg, rgb(var(--blue) / 0.07), rgb(var(--violet) / 0.055));
+  color: rgb(var(--blue));
+  font-size: 0.76rem;
+  padding-inline: 0.9rem;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.58), 0 10px 24px rgb(var(--blue) / 0.07);
+}
+:root[data-theme="dark"] .badge--chip {
+  border-color: rgb(125 211 252 / 0.22);
+  background:
+    radial-gradient(circle at 10% 0%, rgb(var(--cyan) / 0.14), transparent 4rem),
+    linear-gradient(180deg, rgb(34 211 238 / 0.08), rgb(167 139 250 / 0.07));
+  color: rgb(165 243 252);
+}
 .tag-list { display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; }
 
 .hero-visual {
@@ -397,6 +450,10 @@ h1, h2, h3, p { margin-top: 0; }
 .option input { margin-right: 0.55rem; }
 
 .professions-layout, .guide-layout, .profile-layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); gap: 1.5rem; }
+.profession-filter, .profile-layout--polished { margin-top: 2rem; }
+.profession-filter .input, .profession-filter .select { max-width: 18rem; }
+.profession-grid, .saved-professions { margin-top: 1.25rem; }
+.detail-actions, .result-actions { margin-top: 1.5rem; }
 .match__value { color: rgb(var(--blue)); font-size: 1.65rem; font-weight: 900; }
 .primary-match { width: min(100%, 760px); border-color: rgb(var(--blue) / 0.34); background: radial-gradient(circle at 12% 0%, rgb(var(--cyan) / 0.16), transparent 16rem), radial-gradient(circle at 100% 30%, rgb(var(--violet) / 0.12), transparent 18rem), rgb(var(--panel) / 0.98); }
 .reason-list { display: grid; gap: 0.75rem; color: rgb(var(--muted)); line-height: 1.7; }
@@ -459,6 +516,12 @@ h1, h2, h3, p { margin-top: 0; }
   }
   .navbar__drawer[data-open="true"] .navbar__links, .navbar__drawer[data-open="true"] .navbar__actions { display: grid; gap: 0.55rem; align-items: stretch; }
   .navbar__drawer[data-open="true"] a, .navbar__drawer[data-open="true"] .button { width: 100%; }
+  .navbar__drawer[data-open="true"] .language-switcher select { width: 100%; }
+}
+
+@media (min-width: 981px) {
+  .nav-toggle { display: none !important; }
+  .navbar__drawer { display: flex !important; }
 }
 
 @media (max-width: 960px) {

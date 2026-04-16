@@ -92,6 +92,7 @@ CORS_ALLOW_CREDENTIALS = False
 CSRF_TRUSTED_ORIGINS = CLIENT_URLS
 
 LANGUAGE_CODE = "ru"
+LANGUAGES = (("ru", "Русский"), ("en", "English"), ("ky", "Кыргызча"))
 TIME_ZONE = "Asia/Almaty"
 USE_I18N = True
 USE_TZ = True

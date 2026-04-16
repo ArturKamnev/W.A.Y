@@ -1,4 +1,5 @@
 {% extends "way/base.html" %}
+{% load way_extras %}
 {% block title %}W.A.Y. — Who Are You{% endblock %}
 {% block content %}
 <div class="landing-story" data-landing-story>
@@ -7,18 +8,18 @@
       <div class="section__inner">
         <div class="landing-copy">
           <p class="eyebrow">Who Are You</p>
-          <h1 class="title">Профориентация, которая начинается с тебя.</h1>
-          <p class="lead">W.A.Y. помогает школьникам увидеть сильные стороны, пройти карьерный тест, получить честные рекомендации и собрать спокойный план следующих шагов.</p>
+          <h1 class="title">{% ui 'home.title' %}</h1>
+          <p class="lead">{% ui 'home.lead' %}</p>
           <div class="hero__actions">
-            <a class="button button--primary" href="{% url 'web:test' %}">Пройти тест</a>
-            <a class="button button--secondary" href="{% url 'web:professions' %}">Изучить профессии</a>
+            <a class="button button--primary" href="{% url 'web:test' %}">{% ui 'home.test' %}</a>
+            <a class="button button--secondary" href="{% url 'web:professions' %}">{% ui 'home.professions' %}</a>
           </div>
         </div>
         <div class="hero-visual">
           <div class="ascii-way-logo">{% include "way/partials/ascii_logo.html" %}</div>
           <div class="hero-visual__panel card glass">
-            <strong>W.A.Y. строит маршрут, а не ярлык.</strong>
-            <p>Результат опирается на ответы, профессию из каталога и понятные причины совпадения.</p>
+            <strong>{% ui 'home.panel.title' %}</strong>
+            <p>{% ui 'home.panel.body' %}</p>
           </div>
         </div>
       </div>
@@ -26,24 +27,24 @@
 
     <section class="section landing-slide landing-slide--center">
       <div class="section__inner">
-        <p class="eyebrow">Как это работает</p>
-        <h2 class="title">Сначала структура. Потом интерпретация.</h2>
-        <p class="lead">Тест не просит AI угадывать профессию. Он строит профиль признаков, сравнивает его с каталогом и только затем добавляет аккуратное объяснение.</p>
+        <p class="eyebrow">{% ui 'home.how.eyebrow' %}</p>
+        <h2 class="title">{% ui 'home.how.title' %}</h2>
+        <p class="lead">{% ui 'home.how.lead' %}</p>
         <div class="grid grid--3 motion-grid">
           <article class="card value-card">
             <span class="badge">01</span>
-            <h3>Детерминированный тест</h3>
-            <p>Ответы превращаются в профиль признаков, а профессии ранжируются по вычисляемому совпадению.</p>
+            <h3>{% ui 'home.card1.title' %}</h3>
+            <p>{% ui 'home.card1.body' %}</p>
           </article>
           <article class="card value-card">
             <span class="badge">02</span>
-            <h3>AI только для смысла</h3>
-            <p>AI формулирует короткое объяснение, но не меняет профессии и проценты.</p>
+            <h3>{% ui 'home.card2.title' %}</h3>
+            <p>{% ui 'home.card2.body' %}</p>
           </article>
           <article class="card value-card">
             <span class="badge">03</span>
-            <h3>Guide рядом</h3>
-            <p>После результата можно обсудить сомнения и получить следующий практичный шаг.</p>
+            <h3>{% ui 'home.card3.title' %}</h3>
+            <p>{% ui 'home.card3.body' %}</p>
           </article>
         </div>
       </div>
@@ -52,21 +53,21 @@
     <section class="section landing-slide landing-slide--split">
       <div class="section__inner">
         <div>
-          <p class="eyebrow">Каталог</p>
-          <h2 class="title">Профессии без случайных догадок.</h2>
-          <p class="lead">Каждая рекомендация выбирается из существующего каталога W.A.Y. и получает процент, связанный с ответами.</p>
+          <p class="eyebrow">{% ui 'home.catalog' %}</p>
+          <h2 class="title">{% ui 'home.catalog.title' %}</h2>
+          <p class="lead">{% ui 'home.catalog.lead' %}</p>
           <div class="hero__actions">
-            <a class="button button--primary" href="{% url 'web:professions' %}">Открыть каталог</a>
-            <a class="button button--secondary" href="{% url 'web:onboarding' %}">Как начать</a>
+            <a class="button button--primary" href="{% url 'web:professions' %}">{% ui 'home.open.catalog' %}</a>
+            <a class="button button--secondary" href="{% url 'web:onboarding' %}">{% ui 'home.how.start' %}</a>
           </div>
         </div>
         <div class="grid featured-professions">
           {% for profession in professions %}
             <article class="card profession-card">
-              <span class="badge">{{ profession.category }}</span>
-              <h3>{{ profession.title_ru }}</h3>
-              <p>{{ profession.description_ru }}</p>
-              <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">Подробнее</a>
+              <span class="badge">{{ profession.category|category_label:current_language }}</span>
+              <h3>{{ profession|localized_title:current_language }}</h3>
+              <p>{{ profession|localized_description:current_language }}</p>
+              <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">{% ui 'common.more' %}</a>
             </article>
           {% endfor %}
         </div>
@@ -75,9 +76,9 @@
   </div>
 
   <div class="landing-progress" data-landing-progress aria-label="Навигация по слайдам">
-    <button type="button" class="is-active" aria-label="Слайд 1"></button>
-    <button type="button" aria-label="Слайд 2"></button>
-    <button type="button" aria-label="Слайд 3"></button>
+    <button type="button" class="is-active" aria-label="Slide 1"></button>
+    <button type="button" aria-label="Slide 2"></button>
+    <button type="button" aria-label="Slide 3"></button>
   </div>
 </div>
 {% endblock %}

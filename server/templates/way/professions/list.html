@@ -1,42 +1,43 @@
 {% extends "way/base.html" %}
-{% block title %}Профессии — W.A.Y.{% endblock %}
+{% load way_extras %}
+{% block title %}{% ui 'nav.professions' %} — W.A.Y.{% endblock %}
 {% block content %}
 <section class="section">
   <div class="section__inner">
-    <p class="eyebrow">Каталог</p>
-    <h1 class="title">Профессии W.A.Y.</h1>
+    <p class="eyebrow">{% ui 'home.catalog' %}</p>
+    <h1 class="title">{% ui 'nav.professions' %} W.A.Y.</h1>
     <p class="lead">Все рекомендации теста выбираются только из этого каталога.</p>
-    <form class="filter-row" method="get" style="margin-top:1.5rem">
-      <input class="input" style="max-width:28rem" name="query" value="{{ query }}" placeholder="Поиск по профессии">
-      <select class="select" style="max-width:14rem" name="category">
-        <option value="all">Все</option>
-        <option value="technology" {% if category == 'technology' %}selected{% endif %}>Technology</option>
-        <option value="creative" {% if category == 'creative' %}selected{% endif %}>Creative</option>
-        <option value="science" {% if category == 'science' %}selected{% endif %}>Science</option>
-        <option value="business" {% if category == 'business' %}selected{% endif %}>Business</option>
-        <option value="social" {% if category == 'social' %}selected{% endif %}>Social</option>
-        <option value="health" {% if category == 'health' %}selected{% endif %}>Health</option>
+    <form class="filter-row profession-filter" method="get">
+      <input class="input" name="query" value="{{ query }}" placeholder="Поиск по профессии">
+      <select class="select" name="category">
+        <option value="all">{% ui 'common.all' %}</option>
+        <option value="technology" {% if category == 'technology' %}selected{% endif %}>{{ "technology"|category_label:current_language }}</option>
+        <option value="creative" {% if category == 'creative' %}selected{% endif %}>{{ "creative"|category_label:current_language }}</option>
+        <option value="science" {% if category == 'science' %}selected{% endif %}>{{ "science"|category_label:current_language }}</option>
+        <option value="business" {% if category == 'business' %}selected{% endif %}>{{ "business"|category_label:current_language }}</option>
+        <option value="social" {% if category == 'social' %}selected{% endif %}>{{ "social"|category_label:current_language }}</option>
+        <option value="health" {% if category == 'health' %}selected{% endif %}>{{ "health"|category_label:current_language }}</option>
       </select>
-      <button class="button button--secondary" type="submit">Найти</button>
+      <button class="button button--secondary" type="submit">{% ui 'common.search' %}</button>
     </form>
-    <div class="grid grid--3" style="margin-top:2rem">
+    <div class="grid grid--3 profession-grid">
       {% for profession in professions %}
         <article class="card profession-card">
-          <span class="badge">{{ profession.category }}</span>
-          <h3>{{ profession.title_ru }}</h3>
-          <p>{{ profession.description_ru }}</p>
+          <span class="badge">{{ profession.category|category_label:current_language }}</span>
+          <h3>{{ profession|localized_title:current_language }}</h3>
+          <p>{{ profession|localized_description:current_language }}</p>
           <div class="tag-list">
             {% for skill in profession.skills %}
-              <span class="badge">{{ skill }}</span>
+              <span class="badge badge--chip">{{ skill|skill_label:current_language }}</span>
             {% endfor %}
           </div>
           <div class="page-actions">
-            <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">Подробнее</a>
+            <a class="button button--secondary" href="{% url 'web:profession_detail' profession.slug %}">{% ui 'common.more' %}</a>
             {% if request.user.is_authenticated %}
               <form method="post" action="{% url 'web:toggle_profession' profession.slug %}">
                 {% csrf_token %}
                 <input type="hidden" name="next" value="{{ request.get_full_path }}">
-                <button class="button button--ghost" type="submit">{% if profession.slug in saved_ids %}Убрать{% else %}Сохранить{% endif %}</button>
+                <button class="button button--ghost" type="submit">{% if profession.slug in saved_ids %}{% ui 'common.remove' %}{% else %}{% ui 'common.save' %}{% endif %}</button>
               </form>
             {% endif %}
           </div>
