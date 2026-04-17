@@ -23,6 +23,7 @@ export function toResultDto(
 
   return {
     id: result.id,
+    resultMode: result.aiExplanationRu || result.aiExplanationEn ? 'ai' : 'algorithm',
     profileTitleKey: 'results.profileTitle',
     summaryKey: 'results.summary',
     summaryRu: result.aiExplanationRu ?? result.summaryRu,

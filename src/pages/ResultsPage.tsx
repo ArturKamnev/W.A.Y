@@ -58,7 +58,10 @@ export function ResultsPage() {
       <Section eyebrow={t('results.eyebrow')} title={t('results.title')} lead={summary}>
         <div className="results-hero" style={{ marginTop: 'var(--space-6)' }}>
           <Card className="value-card">
-            <Badge>{t(result.profileTitleKey)}</Badge>
+            <div className="result-mode-row">
+              <Badge>{t(result.profileTitleKey)}</Badge>
+              {result.resultMode === 'ai' ? <Badge>{t('results.aiBetaBadge')}</Badge> : <Badge>{t('results.algorithmBadge')}</Badge>}
+            </div>
             <h3>{t('results.summaryTitle')}</h3>
             <p>{summary}</p>
             <div className="page-actions" style={{ marginTop: 'var(--space-5)' }}>

@@ -20,15 +20,16 @@ function scoreRecommendations(submission: TestSubmission): CareerRecommendation[
   const scores = new Map<string, number>()
 
   for (const answer of submission.answers) {
+    const intensity = answer.value <= 1 ? 0 : answer.value === 2 ? 0.38 : answer.value === 3 ? 0.72 : 1
     for (const tag of answer.tags) {
-      scores.set(tag, (scores.get(tag) ?? 0) + answer.value)
+      scores.set(tag, (scores.get(tag) ?? 0) + intensity)
     }
   }
 
   return mockProfessions
     .map((profession) => {
       const raw = (professionTags[profession.id] ?? []).reduce((total, tag) => total + (scores.get(tag) ?? 0), 0)
-      const matchPercent = Math.min(96, Math.max(58, Math.round(62 + raw * 2.4)))
+      const matchPercent = Math.min(96, Math.max(40, Math.round(48 + raw * 8.2)))
 
       return {
         professionId: profession.id,
@@ -43,12 +44,26 @@ function scoreRecommendations(submission: TestSubmission): CareerRecommendation[
 export const resultService = {
   async submitTest(submission: TestSubmission): Promise<TestResult> {
     await wait()
+    const answeredQuestionIds = new Set(submission.answers.map((answer) => answer.questionId))
+    if (answeredQuestionIds.size !== 35) {
+      throw new Error('Complete all 35 questions before requesting a result.')
+    }
+
     const recommendations = scoreRecommendations(submission)
 
     latestResult = {
       id: `result-${Date.now()}`,
       profileTitleKey: 'results.profileTitle',
       summaryKey: 'results.summary',
+      resultMode: submission.resultMode ?? 'algorithm',
+      summaryRu:
+        submission.resultMode === 'ai'
+          ? 'AI-режим beta опирается на тот же расчет: профессии и проценты не меняются моделью, а объяснение остается осторожным.'
+          : 'Алгоритм сравнил ваши ответы с профилями профессий и показал самые близкие направления для проверки.',
+      summaryEn:
+        submission.resultMode === 'ai'
+          ? 'AI beta mode is grounded in the same calculation: professions and percentages are not changed by the model, and the explanation stays cautious.'
+          : 'The algorithm compared your answers with profession profiles and surfaced the closest directions to test.',
       strengthsKeys: ['results.strengths.patterns', 'results.strengths.empathy', 'results.strengths.creativeSystems'],
       workStyleKey: 'results.workStyle',
       environmentKey: 'results.environment',

@@ -77,19 +77,13 @@ function deterministicExplanation(input: {
     alternatives,
     summary:
       language === 'ru'
-        ? `Самое сильное совпадение - ${primary.profession.titleRu}. Результат основан на ваших ответах и заметных признаках: ${traits}.`
-        : `The strongest match is ${primary.profession.titleEn}. The result is based on your answers and the strongest signals: ${traits}.`,
+        ? `AI-режим недоступен или вернул слабый ответ, поэтому показано надежное алгоритмическое объяснение. Самое сильное совпадение - ${primary.profession.titleRu}; заметные признаки: ${traits}.`
+        : `AI mode was unavailable or returned a weak answer, so this is the safe algorithmic explanation. The strongest match is ${primary.profession.titleEn}; strongest signals: ${traits}.`,
     reasoning:
       language === 'ru'
-        ? [
-            `Профессии выбраны из каталога W.A.Y. по совпадению с вашим trait-профилем.`,
-            `Проценты рассчитаны до AI-этапа и не изменяются моделью.`,
-            `Дополнительные варианты близки к основному профилю, но раскрывают разные рабочие среды.`,
-          ]
+        ? structuredResult.reasoningRu
         : [
-            'The professions are selected from the W.A.Y. catalog by matching your trait profile.',
-            'Match percentages are calculated before the AI step and are not changed by the model.',
-            'The additional options are close to the main profile but represent different work environments.',
+            ...structuredResult.reasoningEn,
           ],
   }
 }
@@ -213,6 +207,8 @@ export const groqService = {
         matchPercent: item.matchPercent,
       })),
       dominantTraits: input.structuredResult.strengths,
+      userTraits: input.structuredResult.userTraits,
+      tagScores: input.structuredResult.tagScores,
       workStyle: input.structuredResult.workStyle,
       preferredEnvironment: input.structuredResult.preferredEnvironment,
       recommendations: input.structuredResult.recommendations.map((item) => ({
@@ -229,11 +225,11 @@ export const groqService = {
         {
           role: 'system',
           content:
-            'You write concise career-test result interpretation for W.A.Y. Return valid JSON only. No markdown. No emojis. Do not invent professions. Do not change slugs or percentages. Keep tone clean, modern, professional, and grounded.',
+            'You write beta AI explanations for W.A.Y. career-test results. Return valid JSON only. No markdown. No emojis. Be honest and cautious. Do not flatter. Do not exaggerate fit. Do not claim certainty. Do not invent or add professions. Do not change slugs, order, rankings, or percentages. Do not output any numbers except the locked percentages. Do not override the deterministic ranking. Explain only within the evidence in the locked structured scoring result and trait profile. If evidence is mixed, say it is mixed.',
         },
         {
           role: 'user',
-          content: `Language: ${input.language}. Locked result data: ${JSON.stringify(lockedPayload)}. Return exactly this JSON shape: {"primaryProfessionSlug":"string","primaryMatchPercent":number,"alternatives":[{"slug":"string","matchPercent":number},{"slug":"string","matchPercent":number},{"slug":"string","matchPercent":number}],"summary":"short clean explanation","reasoning":["reason 1","reason 2","reason 3"]}`,
+          content: `Language: ${input.language}. This is a beta explanation grounded in deterministic data. Locked result data: ${JSON.stringify(lockedPayload)}. Return exactly this JSON shape and keep locked values unchanged: {"primaryProfessionSlug":"string","primaryMatchPercent":number,"alternatives":[{"slug":"string","matchPercent":number},{"slug":"string","matchPercent":number},{"slug":"string","matchPercent":number}],"summary":"short honest explanation based only on the provided traits and rankings","reasoning":["answer-based reason 1","answer-based reason 2","limitation or exploration note"]}`,
         },
       ],
       fallback,

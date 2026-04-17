@@ -20,6 +20,7 @@ const answerSchema = z.object({
 
 const submitSchema = z.object({
   attemptId: z.string().optional(),
+  resultMode: z.enum(['algorithm', 'ai']).default('algorithm'),
   answers: z.array(
     z.object({
       questionId: z.string().min(1),
@@ -30,6 +31,25 @@ const submitSchema = z.object({
 })
 
 const toJson = (value: unknown) => value as Prisma.InputJsonValue
+
+async function validateSubmissionAnswers(answers: Array<{ questionId: string; optionId: string }>) {
+  const questions = await prisma.testQuestion.findMany({
+    select: { id: true },
+    orderBy: { sortOrder: 'asc' },
+  })
+  const expectedQuestionIds = new Set(questions.map((question) => question.id))
+  const uniqueQuestionIds = new Set(answers.map((answer) => answer.questionId))
+
+  if (questions.length === 0) throw new HttpError(409, 'Test questions are not configured')
+  if (answers.length !== uniqueQuestionIds.size) throw new HttpError(400, 'Duplicate answers are not allowed')
+  if (uniqueQuestionIds.size !== expectedQuestionIds.size) {
+    throw new HttpError(400, `All ${expectedQuestionIds.size} questions must be answered`)
+  }
+
+  for (const questionId of uniqueQuestionIds) {
+    if (!expectedQuestionIds.has(questionId)) throw new HttpError(400, 'Unknown question in submission')
+  }
+}
 
 testRouter.get(
   '/questions',
@@ -91,6 +111,7 @@ testRouter.post(
   requireAuth,
   asyncHandler(async (request, response) => {
     const data = submitSchema.parse(request.body)
+    await validateSubmissionAnswers(data.answers)
     const attempt = data.attemptId
       ? await prisma.testAttempt.findFirst({ where: { id: data.attemptId, userId: request.user!.id } })
       : await prisma.testAttempt.create({ data: { userId: request.user!.id } })
@@ -102,7 +123,9 @@ testRouter.post(
 
     for (const answer of data.answers) {
       const option = optionsById.get(answer.optionId)
-      if (!option || option.questionId !== answer.questionId) continue
+      if (!option || option.questionId !== answer.questionId) {
+        throw new HttpError(400, 'Invalid option for submitted question')
+      }
       await prisma.testAnswer.upsert({
         where: { attemptId_questionId: { attemptId: attempt.id, questionId: answer.questionId } },
         create: {
@@ -124,12 +147,19 @@ testRouter.post(
       where: { attemptId: attempt.id },
       include: { selectedOption: true },
     })
+    if (savedAnswers.length !== data.answers.length) throw new HttpError(409, 'Could not save all answers')
+
     const professions = await prisma.profession.findMany()
     const deterministic = computeResult(savedAnswers.map((answer) => optionToScoredAnswer(answer.selectedOption)), professions)
-    const [aiExplanationRu, aiExplanationEn] = await Promise.all([
-      groqService.resultInterpretation({ language: 'ru', structuredResult: deterministic }),
-      groqService.resultInterpretation({ language: 'en', structuredResult: deterministic }),
-    ])
+    const aiExplanations =
+      data.resultMode === 'ai'
+        ? await Promise.all([
+            groqService.resultInterpretation({ language: 'ru', structuredResult: deterministic }),
+            groqService.resultInterpretation({ language: 'en', structuredResult: deterministic }),
+          ])
+        : null
+    const aiExplanationRu = aiExplanations?.[0]
+    const aiExplanationEn = aiExplanations?.[1]
 
     const result = await prisma.$transaction(async (tx) => {
       await tx.testAttempt.update({
@@ -149,10 +179,10 @@ testRouter.post(
           preferredEnvironment: toJson(deterministic.preferredEnvironment),
           recommendedDirections: toJson(deterministic.recommendedDirections),
           roadmap: toJson(deterministic.roadmap),
-          aiExplanationRu: aiExplanationRu.summary,
-          aiExplanationEn: aiExplanationEn.summary,
-          aiReasoningRu: toJson(aiExplanationRu.reasoning),
-          aiReasoningEn: toJson(aiExplanationEn.reasoning),
+          aiExplanationRu: aiExplanationRu?.summary,
+          aiExplanationEn: aiExplanationEn?.summary,
+          aiReasoningRu: toJson(aiExplanationRu?.reasoning ?? deterministic.reasoningRu),
+          aiReasoningEn: toJson(aiExplanationEn?.reasoning ?? deterministic.reasoningEn),
           recommendations: {
             create: deterministic.recommendations.map((recommendation) => ({
               professionId: recommendation.profession.id,

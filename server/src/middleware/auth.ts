@@ -21,9 +21,19 @@ export async function requireAuth(request: Request, _response: Response, next: N
     if (!token) throw new HttpError(401, 'Authentication required')
 
     const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload
+    if (!payload?.sub || typeof payload.sub !== 'string') {
+      throw new HttpError(401, 'Invalid or expired session')
+    }
+
     const user = await prisma.user.findUnique({
       where: { id: payload.sub },
-      select: { id: true, role: true, email: true, preferredLanguage: true, isActive: true },
+      select: {
+        id: true,
+        role: true,
+        email: true,
+        preferredLanguage: true,
+        isActive: true,
+      },
     })
 
     if (!user || !user.isActive) throw new HttpError(401, 'Account is not available')

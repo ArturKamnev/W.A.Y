@@ -12,7 +12,14 @@ export function scoreAnswers(answers: ScoredAnswer[]): ScoredTraitProfile {
   const tagScores: Record<string, number> = {}
 
   for (const answer of answers) {
-    const intensity = Math.max(0, Math.min(answer.value, 4)) / 4
+    const normalizedValue = Math.max(1, Math.min(answer.value, 4))
+    const intensityByValue: Record<number, number> = {
+      1: 0,
+      2: 0.38,
+      3: 0.72,
+      4: 1,
+    }
+    const intensity = intensityByValue[normalizedValue] ?? 0
 
     for (const tag of answer.tags) {
       tagScores[tag] = Number(((tagScores[tag] ?? 0) + intensity).toFixed(4))

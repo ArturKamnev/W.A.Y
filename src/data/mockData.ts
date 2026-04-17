@@ -217,6 +217,7 @@ export const mockRoadmap: RoadmapStep[] = [
 
 export const defaultResult: TestResult = {
   id: 'result-demo',
+  resultMode: 'algorithm',
   profileTitleKey: 'results.profileTitle',
   summaryKey: 'results.summary',
   reasoningRu: [

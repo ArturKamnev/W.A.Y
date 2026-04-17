@@ -8,7 +8,14 @@ const pillars = [
   ['about.helpTitle', 'about.helpBody'],
 ]
 
-const team = ['about.team.product', 'about.team.design', 'about.team.research']
+const team = [
+  { nameKey: 'about.team.maxim.name', roleKey: 'about.team.maxim.role' },
+  { nameKey: 'about.team.artur.name', roleKey: 'about.team.artur.role' },
+  { nameKey: 'about.team.eldar.name', roleKey: 'about.team.eldar.role' },
+  { nameKey: 'about.team.zhanibek.name', roleKey: 'about.team.zhanibek.role' },
+  { nameKey: 'about.team.chyngyz.name', roleKey: 'about.team.chyngyz.role' },
+  { nameKey: 'about.team.adil.name', roleKey: 'about.team.adil.role' },
+]
 
 export function AboutPage() {
   const { t } = useTranslation()
@@ -35,10 +42,10 @@ export function AboutPage() {
       <Section title={t('about.teamTitle')} lead={t('about.teamLead')} compact>
         <div className="grid grid--3" style={{ marginTop: 'var(--space-6)' }}>
           {team.map((member, index) => (
-            <Card className="team-card" key={member}>
+            <Card className="team-card" key={member.nameKey}>
               <Badge>{String(index + 1).padStart(2, '0')}</Badge>
-              <h3>{t(member)}</h3>
-              <p>{t('footer.madeBy')}</p>
+              <h3>{t(member.nameKey)}</h3>
+              <p>{t(member.roleKey)}</p>
             </Card>
           ))}
         </div>

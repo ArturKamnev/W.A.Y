@@ -21,10 +21,10 @@ export interface AppRoute {
 }
 
 export const routes: AppRoute[] = [
-  { path: '/', labelKey: 'nav.home', element: <HomePage />, showInNav: true, showInFooter: true },
+  { path: '/', labelKey: 'nav.home', element: <HomePage />, showInFooter: true },
   { path: '/about', labelKey: 'nav.about', element: <AboutPage />, showInNav: true, showInFooter: true },
   { path: '/onboarding', labelKey: 'nav.start', element: <OnboardingPage />, showInFooter: true },
-  { path: '/test', labelKey: 'nav.test', element: <TestPage />, showInNav: true },
+  { path: '/test', labelKey: 'nav.test', element: <TestPage /> },
   { path: '/results', labelKey: 'results.title', element: <ResultsPage /> },
   { path: '/professions', labelKey: 'nav.professions', element: <ProfessionsPage />, showInNav: true, showInFooter: true },
   { path: '/guide', labelKey: 'nav.guide', element: <GuidePage />, showInNav: true, showInFooter: true },

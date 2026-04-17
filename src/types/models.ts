@@ -42,6 +42,7 @@ export interface TestAnswer {
 
 export interface TestSubmission {
   userId?: string
+  resultMode?: 'algorithm' | 'ai'
   answers: TestAnswer[]
   completedAt: string
 }
@@ -63,6 +64,7 @@ export interface RoadmapStep {
 
 export interface TestResult {
   id: string
+  resultMode?: 'algorithm' | 'ai'
   profileTitleKey: string
   summaryKey: string
   summaryRu?: string

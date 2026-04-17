@@ -14,6 +14,8 @@ export const traitKeys = [
   'researchOrientation',
   'leadership',
   'organization',
+  'curiosity',
+  'persistence',
 ] as const
 
 export type TraitKey = (typeof traitKeys)[number]
@@ -60,6 +62,8 @@ export interface CareerTestDeterministicResult {
   profileTitleKey: string
   summaryRu: string
   summaryEn: string
+  reasoningRu: string[]
+  reasoningEn: string[]
   strengths: TraitLabel[]
   workStyle: TraitLabel
   preferredEnvironment: TraitLabel
