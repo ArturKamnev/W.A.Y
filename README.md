@@ -1,65 +1,193 @@
-# W.A.Y. Full-Stack MVP
+# W.A.Y. — платформа профориентации и самопознания
 
-W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished React frontend and a production-style Node.js API.
+W.A.Y. расшифровывается как **Who Are You**. Это веб-платформа для школьников, которая помогает спокойнее и осознаннее выбрать направление развития. Вместо разового «теста на профессию» проект даёт целый продуктовый сценарий: знакомство с платформой, прохождение теста, получение структурированного результата, изучение профессий, диалог с W.A.Y. Guide и дальнейшую работу с профилем.
 
-The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, persisted product feedback with admin moderation, an admin dashboard, deterministic career-test scoring, backend-only Groq integration for controlled explanations, and a custom animated SPA 404 page.
+Сейчас проект представляет собой полноценное full-stack приложение с реальной авторизацией, сохранением пользовательских данных, алгоритмической системой расчёта результатов, AI-пояснениями через Groq, системой обратной связи, админ-панелью и адаптивным интерфейсом. fileciteturn56file0
 
-## Stack
+---
 
-- Frontend: React, TypeScript, Vite, React Router, Zustand, Framer Motion, react-i18next, Tailwind CSS, react-hook-form, zod
-- Backend: Node.js, TypeScript, Express, Prisma ORM, PostgreSQL, JWT auth, bcryptjs, Helmet, CORS, rate limiting, structured JSON request logs
-- AI: Groq OpenAI-compatible chat completions through the backend only
-- Quality: Vitest, ESLint, TypeScript builds, style-manifest and novelty validators
+## Что делает W.A.Y.
 
-## Folder Structure
+Главная идея проекта — помочь школьнику:
 
-```text
-src/                    React frontend
-  app/                  route config and app shell
-  components/           reusable UI, layout, and domain cards
-  pages/                product pages, including /admin
-  services/             API client, mock services, and real API repositories
-  store/                persisted Zustand slices
-  i18n/                 English and Russian translations
-  styles/               light theme tokens, layout, motion, responsive CSS
+- понять свои сильные стороны;
+- увидеть интересы и предпочитаемый стиль работы;
+- получить несколько подходящих карьерных направлений;
+- изучить альтернативные профессии, а не один жёсткий «вердикт»;
+- задать вопросы помощнику W.A.Y. Guide;
+- сохранить результаты и вернуться к ним позже.
 
-server/                 Express + Prisma backend
-  prisma/               PostgreSQL schema, migration, seed script
-  src/
-    config/             env validation
-    db/                 Prisma client
-    middleware/         auth, role guard, error handler
-    modules/            auth, test, professions, guide, profile, feedback, admin, health
-    services/           Groq integration
+Платформа не пытается навязать пользователю единственный правильный выбор. Наоборот, она подаёт профориентацию как аккуратный, понятный и менее стрессовый процесс. Русский язык является основным сценарием использования, а состояние языка и профиля пользователя сохраняется между сессиями. fileciteturn56file0
+
+---
+
+## Как работает приложение
+
+### 1. Знакомство с платформой
+
+Пользователь попадает на главную страницу, где видит, для чего нужен W.A.Y., как устроен процесс и почему результат — это не случайный ответ, а более широкая система самопонимания. Интерфейс строится как современный продуктовый сценарий, а не как сухая анкета. В проекте есть отдельная стартовая логика, адаптивная landing page и продуманный мобильный UX. fileciteturn56file0
+
+### 2. Регистрация и вход
+
+Пользователь может создать аккаунт, войти в систему и получить персональную сессию. Авторизация построена на JWT: после входа фронтенд сохраняет сессию и использует токен для обращения к защищённым API-эндпоинтам. Это позволяет хранить прогресс, результаты, сохранённые профессии и диалоги с Guide. fileciteturn56file0
+
+### 3. Прохождение теста
+
+В основе W.A.Y. лежит карьерный тест. Пользователь проходит набор вопросов, а интерфейс помогает двигаться по тесту последовательно и осознанно:
+
+- текущий прогресс сохраняется локально;
+- есть возможность сбросить тест и начать заново;
+- нельзя перейти дальше, пока не дан ответ на текущий вопрос;
+- вернуться назад можно без потери уже введённых данных;
+- итоговые действия недоступны, пока не завершён полный набор вопросов.
+
+Такой подход делает прохождение теста более управляемым и снижает вероятность случайного или оборванного результата. fileciteturn56file0
+
+### 4. Алгоритмический результат
+
+После отправки теста backend рассчитывает результат детерминированно. Это один из ключевых принципов проекта: сначала работает алгоритм, а уже потом поверх него накладываются AI-пояснения. Система:
+
+1. превращает ответы в набор сигналов — интересы, логику, креативность, коммуникацию, склонность к структуре, самостоятельности, исследованию и т.д.;
+2. сравнивает получившийся профиль пользователя с профилями профессий в каталоге;
+3. ранжирует профессии;
+4. формирует основной результат, альтернативы, проценты совпадения, сильные стороны, предпочтительную рабочую среду, направления развития и дорожную карту.
+
+Это важно: итоговые профессии и проценты не должны придумыватьcя AI — они вычисляются алгоритмом и остаются источником истины. fileciteturn56file0
+
+### 5. AI-пояснение результата
+
+После детерминированного расчёта платформа может дополнительно обратиться к Groq. AI в проекте выполняет ограниченную роль:
+
+- объясняет результат более понятным языком;
+- помогает интерпретировать сильные стороны;
+- формулирует reasoning-блоки и summary;
+- не меняет ранжирование профессий и не выдумывает новые проценты.
+
+Если AI недоступен или возвращает невалидный ответ, система использует безопасный fallback. Секреты модели остаются только на backend. fileciteturn56file0
+
+### 6. Каталог профессий
+
+После теста пользователь может изучать каталог профессий: смотреть описания, сохранять интересные направления и сравнивать варианты. Это нужно, чтобы результат теста не воспринимался как жёсткое ограничение — пользователь получает пространство для исследования и выбора внутри продукта. fileciteturn56file0
+
+### 7. W.A.Y. Guide
+
+В проекте есть модуль W.A.Y. Guide — это не свободный чат «про всё», а направленный помощник по рефлексии и профориентации. Он нужен, когда пользователь:
+
+- сомневается в результате;
+- хочет понять, почему ему подходит та или иная профессия;
+- ищет спокойный следующий шаг;
+- хочет разобраться в ощущении «я ещё не понимаю, что мне ближе».
+
+Диалоги сохраняются, а ответы Guide генерируются только на backend. fileciteturn56file0
+
+### 8. Профиль пользователя
+
+В профиле собирается персональное состояние пользователя:
+
+- основные данные;
+- сохранённые профессии;
+- последние результаты;
+- недавняя активность;
+- предпочтительный язык.
+
+Это превращает проект из разовой страницы в личный рабочий кабинет, куда можно возвращаться. fileciteturn56file0
+
+### 9. Система обратной связи
+
+В интерфейсе есть отдельное действие для отправки обратной связи. Пользователь может оставить пожелание, замечание или идею улучшения. Сообщение сохраняется в PostgreSQL, может быть связано с текущим пользователем, а также содержит вспомогательные данные вроде страницы отправки и user agent. Администратор видит эти сообщения в админ-панели и может удалять обработанные записи. fileciteturn56file0
+
+### 10. Админ-панель
+
+У проекта есть защищённая админ-зона. Она показывает:
+
+- общее число пользователей;
+- число активных пользователей;
+- число завершённых тестов;
+- число сохранённых профессий;
+- число диалогов Guide;
+- количество отзывов;
+- таблицу пользователей;
+- список сообщений обратной связи.
+
+Админ может менять статус пользователя, переключать роли user/admin и модерировать feedback. Действия, где нужна трассируемость, записываются в `AdminAuditLog`. fileciteturn56file0
+
+---
+
+## Что уже реализовано
+
+На текущий момент проект включает:
+
+- frontend на **React + TypeScript + Vite**;
+- backend на **Node.js + TypeScript + Express**;
+- базу данных **PostgreSQL** через **Prisma**;
+- JWT-авторизацию;
+- сохранение результатов, профессий и диалогов;
+- алгоритмическую систему расчёта карьерного результата;
+- AI-пояснения через **Groq** только на backend;
+- модуль обратной связи;
+- админ-панель с модерацией;
+- адаптивный интерфейс;
+- отдельную кастомную 404-страницу;
+- мобильные UX-правила для меню, теста и layout-структуры. fileciteturn56file0
+
+---
+
+## Как устроено приложение с точки зрения пользователя
+
+Если описать продукт совсем просто, то сценарий такой:
+
+1. школьник открывает платформу и понимает, зачем она нужна;
+2. проходит тест и даёт ответы на вопросы;
+3. получает основной результат и несколько альтернатив;
+4. читает объяснения и изучает профессии подробнее;
+5. при необходимости задаёт вопросы W.A.Y. Guide;
+6. сохраняет интересные профессии;
+7. может вернуться позже к своему профилю и результатам;
+8. при желании отправляет обратную связь, а команда видит её в админке.
+
+Именно такой сценарий и является основным продуктовым смыслом W.A.Y. fileciteturn56file0
+
+---
+
+## Ограничения и текущие точки роста
+
+Несмотря на то что проект уже стал полноценным full-stack продуктом, в нём ещё есть направления для усиления:
+
+- не реализованы email verification и reset password;
+- пока нет продвинутой ротации токенов;
+- bundle всё ещё можно дополнительно оптимизировать;
+- каталог профессий и контент могут быть расширены;
+- scoring-система может дальше усиливаться по качеству и глубине интерпретации.
+
+Но даже в текущем виде это уже не ранний концепт, а рабочее приложение с реальными модулями, бизнес-логикой и продуманным пользовательским сценарием. fileciteturn56file0
+
+---
+
+## Установка и запуск
+
+### 1. Установка зависимостей
+
+В корне проекта:
+
+```bash
+npm.cmd install
+npm.cmd --prefix server install
 ```
 
-Key career-test scoring files:
+### 2. Настройка frontend `.env`
 
-```text
-server/src/modules/test/
-  answerScoring.ts        maps selected answers into a normalized trait vector
-  professionRanking.ts    builds profession vectors and ranks catalog professions
-  resultNormalization.ts  converts ranked scores into final percentages and text payloads
-  scoring.ts              orchestrates the deterministic result pipeline
-  types.ts                shared scoring, ranking, AI, and DTO types
+Создай файл `.env` в корне проекта и укажи:
 
-src/hooks/
-  useTypedRotatingText.ts rotates and types 404 subtitle messages
-  useAsciiMutation.ts     animates the character-only W.A.Y. ASCII logo
-```
-
-## Environment
-
-Frontend `.env`:
-
-```text
+```env
 VITE_API_BASE_URL=http://localhost:4000/api
 VITE_USE_MOCK_API=false
 ```
 
-Backend `server/.env`:
+### 3. Настройка backend `.env`
 
-```text
+Создай файл `server/.env` и укажи:
+
+```env
 PORT=4000
 NODE_ENV=development
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/way
@@ -71,224 +199,59 @@ GROQ_MODEL=openai/gpt-oss-120b
 GROQ_BASE_URL=https://api.groq.com/openai/v1
 ```
 
-Never commit real secrets. If `GROQ_API_KEY` is missing or left as `change_me`, the API returns safe deterministic fallback guidance instead of failing the product flow. Groq is called only from the backend.
+Если `GROQ_API_KEY` не указан или оставлен как `change_me`, приложение всё равно продолжит работать, используя безопасный fallback для AI-части. fileciteturn56file0
 
-## Local Setup
+### 4. Подготовка базы данных
 
-PowerShell blocks `npm.ps1` on this machine, so use `npm.cmd`.
-
-```bash
-npm.cmd install
-npm.cmd --prefix server install
-```
-
-Start PostgreSQL locally, then create a database named `way`. Docker example:
+После настройки `DATABASE_URL` выполни миграции Prisma:
 
 ```bash
-docker run --name way-postgres -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=way -p 5432:5432 -d postgres:16
-```
-
-Prepare the backend:
-
-```bash
-copy server\.env.example server\.env
+npm.cmd --prefix server run prisma:generate
 npm.cmd --prefix server run prisma:migrate
-npm.cmd --prefix server run prisma:seed
 ```
 
-The feedback system is delivered through Prisma migration `20260417000000_feedback`. Existing local databases should run `npm.cmd --prefix server run prisma:migrate` before starting the API.
+Для уже существующих баз нужно применять миграции, а не пересоздавать данные. `prisma:seed` стоит использовать только в контролируемой тестовой среде. fileciteturn56file0
 
-Seeded credentials:
+### 5. Запуск проекта
 
-```text
-Admin:   admin@way.local / Admin12345!
-Student: student@way.local / Student12345!
-```
-
-Run the app in two terminals:
+В двух терминалах:
 
 ```bash
 npm.cmd run dev:server
 npm.cmd run dev:frontend
 ```
 
-Open `http://localhost:5173`.
+После этого frontend обычно доступен на:
 
-## Scripts
+```text
+http://localhost:5173
+```
 
-Frontend:
+---
+
+## Полезные команды
+
+### Frontend
 
 ```bash
 npm.cmd run typecheck
 npm.cmd run lint
 npm.cmd run test
-npm.cmd run validate:manifest
-npm.cmd run validate:novelty
 npm.cmd run build
 ```
 
-Backend:
+### Backend
 
 ```bash
 npm.cmd --prefix server run typecheck
 npm.cmd --prefix server run build
 npm.cmd --prefix server run prisma:generate
 npm.cmd --prefix server run prisma:migrate
-npm.cmd --prefix server run prisma:seed
+npm.cmd --prefix server run prisma:deploy
 ```
 
-## Backend Overview
+---
 
-The API is mounted at `/api` and includes:
+## Итог
 
-- `POST /api/auth/signup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
-- `GET /api/test/questions`, `POST /api/test/start`, `POST /api/test/answer`, `POST /api/test/submit`
-- `GET /api/test/results/latest`, `GET /api/test/results/:id`
-- `GET /api/professions`, `GET /api/professions/:slug`, save/remove/list saved professions
-- `GET /api/profile`, `PATCH /api/profile`
-- `GET /api/guide/topics`, conversations, persisted messages
-- `POST /api/feedback`
-- `GET /api/admin/stats`, user list/detail/update/status/role
-- `GET /api/admin/feedback`, `DELETE /api/admin/feedback/:id`
-- `GET /api/health`
-
-Authentication is JWT-based. Passwords are hashed with bcryptjs. Private routes require `Authorization: Bearer <token>`, and admin routes require the `admin` role.
-
-## Database
-
-Prisma uses PostgreSQL only. The schema includes users, professions, translated test questions/options, attempts, answers, results, saved professions, feedback messages, guide conversations/messages, result recommendations, and admin audit logs.
-
-## Career-Test Result Pipeline
-
-The result system is deterministic first and AI-assisted second.
-
-1. `answerScoring.ts` converts each selected option into weighted trait signals such as logic, analytical thinking, creativity, communication, technical interest, helping people, structure, teamwork, independence, visual interest, research orientation, leadership, and organization.
-2. `professionRanking.ts` builds trait profiles for every profession in the existing database catalog. It uses `Profession.scoringTags` plus category fallback weights, then compares the user vector to each profession vector.
-3. `resultNormalization.ts` ranks catalog professions, selects one primary best-fit profession plus three alternatives, and derives normalized match percentages from the computed scores.
-4. Deterministic text fields are generated for summary, strengths, work style, preferred environment, directions, and per-profession reasons.
-5. Groq receives only the locked structured result. It does not see raw answers and cannot decide rankings, invent professions, or change percentages.
-
-The backend persists four recommendations per result: the primary profession and three additional professions. All recommendations come from the existing `Profession` table.
-
-## Test Flow Controls
-
-The test page keeps local progress in the existing persisted Zustand test store. The interaction rules are deliberate:
-
-- `Reset test` clears all selected answers, resets autosave state, and returns to the first question.
-- Forward movement is locked until the current question has an answer.
-- Back navigation remains available, so users can review earlier answers without getting trapped.
-- The final result controls remain unavailable until all 35 questions are answered.
-- Result submission still uses the existing backend `/api/test/submit` flow and deterministic scoring pipeline.
-
-## AI JSON-Only Explanation
-
-Groq runs server-side through `server/src/services/groqService.ts` and is asked for JSON-only output using OpenAI-compatible JSON mode:
-
-```json
-{
-  "primaryProfessionSlug": "backend-developer",
-  "primaryMatchPercent": 89,
-  "alternatives": [
-    { "slug": "data-analyst", "matchPercent": 84 },
-    { "slug": "ux-designer", "matchPercent": 78 },
-    { "slug": "cybersecurity-specialist", "matchPercent": 74 }
-  ],
-  "summary": "short clean explanation",
-  "reasoning": ["reason 1", "reason 2", "reason 3"]
-}
-```
-
-The response is validated with `zod`. Slugs and percentages must exactly match the deterministic backend result. Emoji are stripped. Invalid AI output is retried once; if the model still fails, the API returns a deterministic fallback summary and reasoning bullets.
-
-## Frontend Integration
-
-The frontend keeps the existing service architecture:
-
-- Mock services still exist for tests and fallback.
-- `src/services/apiRepositories.ts` contains real API-backed repositories.
-- `src/services/repositories.ts` switches by `VITE_USE_MOCK_API`.
-- `src/services/apiClient.ts` centralizes base URL, JSON handling, and bearer-token injection.
-
-The login/signup, profile, test submit, results, professions save/remove, guide chat, and admin dashboard call the backend. Zustand persists the client session token and useful UI state, never passwords. The results page renders the primary profession separately from the three additional recommendations, uses real match percentages, and shows the validated summary plus short "why it fits" bullets.
-
-## Feedback System
-
-The header includes a visible feedback action. Users can submit wishes, suggestions, or product feedback from any page.
-
-Frontend behavior:
-
-- Feedback opens in a product-styled modal from the shared layout.
-- Message is required and validated client-side.
-- Name and email are optional. If the user is signed in and leaves email empty, the session email is sent.
-- Loading, success, and error states are shown inline.
-
-Backend behavior:
-
-- `POST /api/feedback` stores feedback in PostgreSQL through Prisma.
-- Auth is optional. Signed-in feedback is linked to the user; anonymous feedback is still accepted.
-- The API stores message, optional contact fields, page path, user agent, and creation date.
-
-Admin moderation:
-
-- Admins can view submitted feedback in `/admin`.
-- `GET /api/admin/feedback` returns the latest feedback entries.
-- `DELETE /api/admin/feedback/:id` removes handled entries and writes an admin audit log.
-- The admin stats panel includes a feedback count.
-
-## Custom 404 Page
-
-Unknown SPA routes render `src/pages/NotFoundPage.tsx` outside `AppLayout`, so the 404 route has no header, footer, or global navigation.
-
-The 404 page includes:
-
-- a full-screen dark cinematic layout
-- left-side `404...` title, typed rotating Russian subtitle, and keyboard-accessible `Вернуться домой` CTA
-- right-side W.A.Y. ASCII logo rendered with visible text characters only
-- continuous character substitution through `useAsciiMutation`, preserving whitespace and the W.A.Y. silhouette
-- responsive desktop, tablet, and mobile layouts with no page overflow
-
-The typed subtitle rotates every five seconds through `useTypedRotatingText`. The ASCII animation mutates only occupied character positions, so the logo stays recognizable while feeling alive and digital.
-
-## Admin Panel
-
-The `/admin` route is protected in the UI and by the backend. It shows total users, active users, completed tests, saved professions, guide conversations, recent signups, feedback count, a searchable user table, and a feedback moderation list. Admins can activate/deactivate users, switch user/admin roles, and delete handled feedback. Changes are written to `AdminAuditLog` where moderation changes need traceability.
-
-## Responsive and Mobile UX
-
-The responsive layer is designed around consistent layout rules instead of page-specific hacks:
-
-- Global overflow guards prevent horizontal scrolling from wide grids or animated content.
-- Grid children use `min-width: 0` so cards, result panels, and admin rows can shrink correctly.
-- The mobile drawer is centered under the header, uses safe viewport width, has balanced spacing, and keeps touch targets at comfortable heights.
-- Test controls stack cleanly on phones, including reset and final result actions.
-- The 404 page preserves its cinematic visual identity while scaling typography, ASCII art, CTA placement, and ambient frame for small screens.
-
-## Landing Motion Fix
-
-The landing page uses a controlled desktop slide stack instead of native page drift:
-
-- one wheel gesture moves one slide
-- transition locking prevents accidental skipping
-- the footer cannot appear during slide navigation
-- the indicator animates smoothly as the active slide changes
-- mobile and reduced-motion users get natural scrolling
-
-The transparent W.A.Y. logo remains integrated in the header and footer through `public/way-logo.png`.
-
-## Russian-First UX
-
-Russian is the default first-run language. The language switcher persists the chosen locale, and the backend stores `preferredLanguage` per user so W.A.Y. Guide and result explanations can behave Russian-first.
-
-## Security Notes
-
-- Secrets live only in env vars.
-- Groq is called only from the backend.
-- Helmet, CORS, rate limiting, JSON size limits, validation, auth middleware, role middleware, and centralized error handling are enabled.
-- Logs redact secrets by never writing authorization headers.
-- The stateless logout endpoint clears client session state; token revocation/refresh-token rotation can be added later.
-
-## Known Limitations
-
-- Email verification, password reset, refresh-token rotation, and production observability are not implemented yet.
-- The frontend bundle still emits a Vite chunk-size warning; route-level lazy loading is the next cleanup.
-- Seed data is intentionally small, but the schema is ready for a larger catalog.
+W.A.Y. — это платформа, которая превращает профориентацию школьников в понятный цифровой продукт. Вместо одноразового теста пользователь получает путь: пройти диагностику, увидеть результат, изучить альтернативы, получить объяснения, задать вопросы, сохранить интересные направления и взаимодействовать с системой дальше. Именно в этом и состоит главная ценность проекта. fileciteturn56file0
