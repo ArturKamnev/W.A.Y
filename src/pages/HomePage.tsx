@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
-import { Badge, Card, Section } from '../components/ui'
+import { Card, Section } from '../components/ui'
 import { mediaAssets } from '../data/media'
 
 const homeSteps = [
@@ -177,13 +177,6 @@ export function HomePage() {
               transition={{ delay: 0.12, duration: 0.72, ease }}
             >
               <img alt={t(mediaAssets.hero.altKey)} src={mediaAssets.hero.url} />
-              <div className="hero-visual__overlay" />
-              <div className="path-lines" />
-              <div className="hero-visual__panel glass">
-                <Badge>{t('brand.slogan')}</Badge>
-                <strong>{t('home.visualTitle')}</strong>
-                <p>{t('home.visualBody')}</p>
-              </div>
             </motion.div>
           </div>
         </section>
@@ -260,7 +253,7 @@ export function HomePage() {
           </div>
           <div>
             <span className="feature-icon">M</span>
-            <h3>{t('about.team.research')}</h3>
+            <h3>Уверенность</h3>
             <p>{t('about.helpBody')}</p>
           </div>
         </motion.div>
