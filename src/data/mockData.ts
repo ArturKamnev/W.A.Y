@@ -220,6 +220,8 @@ export const defaultResult: TestResult = {
   resultMode: 'algorithm',
   profileTitleKey: 'results.profileTitle',
   summaryKey: 'results.summary',
+  profileClarity: 0.76,
+  dominantTraits: ['visualInterest', 'helpingPeople', 'creativity'],
   reasoningRu: [
     'Рекомендации рассчитаны по совпадению ответов с профилями профессий.',
     'Проценты отражают относительную близость к каталогу W.A.Y.',

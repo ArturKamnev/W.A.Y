@@ -1,6 +1,7 @@
 import { apiClient } from './apiClient'
 import type {
   AdminStats,
+  AdminFeedback,
   AdminUser,
   AuthSession,
   ChatConversation,
@@ -9,6 +10,8 @@ import type {
   Profession,
   ProfessionFilters,
   Question,
+  FeedbackReceipt,
+  FeedbackSubmission,
   SignInRequest,
   SignUpRequest,
   TestResult,
@@ -39,6 +42,10 @@ export const apiResultService = {
     return apiClient.post<TestResult>('/test/submit', submission)
   },
   getLatestResult: () => apiClient.get<TestResult>('/test/results/latest'),
+}
+
+export const apiFeedbackService = {
+  createFeedback: (submission: FeedbackSubmission) => apiClient.post<FeedbackReceipt>('/feedback', submission),
 }
 
 export const apiProfessionService = {
@@ -72,6 +79,8 @@ export const apiGuideService = {
 
 export const apiAdminService = {
   getStats: () => apiClient.get<AdminStats>('/admin/stats'),
+  listFeedback: () => apiClient.get<AdminFeedback[]>('/admin/feedback'),
+  deleteFeedback: (id: string) => apiClient.delete<void>(`/admin/feedback/${id}`),
   listUsers: (filters: { search?: string; role?: 'user' | 'admin' } = {}) => {
     const params = new URLSearchParams()
     if (filters.search) params.set('search', filters.search)

@@ -69,6 +69,8 @@ export interface TestResult {
   summaryKey: string
   summaryRu?: string
   summaryEn?: string
+  profileClarity?: number
+  dominantTraits?: string[]
   reasoningRu?: string[]
   reasoningEn?: string[]
   strengthsKeys: string[]
@@ -179,6 +181,7 @@ export interface AdminStats {
   savedProfessions: number
   guideConversations: number
   recentSignups: number
+  feedbackCount?: number
 }
 
 export interface AdminUser extends UserProfile {
@@ -187,4 +190,31 @@ export interface AdminUser extends UserProfile {
     savedProfessions: number
     conversations: number
   }
+}
+
+export interface FeedbackSubmission {
+  message: string
+  name?: string
+  email?: string
+  page?: string
+}
+
+export interface FeedbackReceipt {
+  id: string
+  createdAt: string
+}
+
+export interface AdminFeedback {
+  id: string
+  message: string
+  name?: string | null
+  email?: string | null
+  page?: string | null
+  userAgent?: string | null
+  createdAt: string
+  user?: {
+    id: string
+    name: string
+    email: string
+  } | null
 }

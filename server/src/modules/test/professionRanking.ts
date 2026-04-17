@@ -44,6 +44,7 @@ const professionTraitAdjustments: Record<string, Partial<TraitVector>> = {
     organization: 0.72,
     analyticalThinking: 0.45,
     helpingPeople: 0.32,
+    adaptability: 0.42,
   },
   'psychologist-educator': {
     helpingPeople: 1,
@@ -71,6 +72,7 @@ const professionTraitAdjustments: Record<string, Partial<TraitVector>> = {
     communication: 0.58,
     organization: 0.48,
     creativity: 0.32,
+    adaptability: 0.75,
   },
 }
 

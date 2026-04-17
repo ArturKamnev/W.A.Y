@@ -17,6 +17,7 @@ export const traitLabels: Record<TraitKey, TraitLabel> = {
   organization: { key: 'results.traits.organization', ru: 'Организация', en: 'Organization' },
   curiosity: { key: 'results.traits.curiosity', ru: 'Любопытство', en: 'Curiosity' },
   persistence: { key: 'results.traits.persistence', ru: 'Настойчивость', en: 'Persistence' },
+  adaptability: { key: 'results.traits.adaptability', ru: 'Гибкость к изменениям', en: 'Adaptability' },
 }
 
 export const tagTraitWeights: Record<string, Partial<TraitVector>> = {
@@ -39,7 +40,7 @@ export const tagTraitWeights: Record<string, Partial<TraitVector>> = {
   writing: { communication: 0.75, creativity: 0.45, structure: 0.25 },
   research: { researchOrientation: 1, analyticalThinking: 0.65, independence: 0.25, curiosity: 0.6 },
   science: { researchOrientation: 0.95, analyticalThinking: 0.65, structure: 0.35, curiosity: 0.45 },
-  experiments: { researchOrientation: 0.85, analyticalThinking: 0.5, creativity: 0.25, curiosity: 0.45 },
+  experiments: { researchOrientation: 0.85, analyticalThinking: 0.5, creativity: 0.25, curiosity: 0.45, adaptability: 0.25 },
   discovery: { researchOrientation: 0.9, creativity: 0.25, independence: 0.25, curiosity: 1 },
   lab: { researchOrientation: 0.8, structure: 0.55, analyticalThinking: 0.35 },
   people: { helpingPeople: 0.95, communication: 0.55, teamwork: 0.25 },
@@ -59,8 +60,8 @@ export const tagTraitWeights: Record<string, Partial<TraitVector>> = {
   planning: { organization: 0.85, structure: 0.7, analyticalThinking: 0.25 },
   operations: { organization: 0.8, structure: 0.75, analyticalThinking: 0.3 },
   market: { leadership: 0.65, communication: 0.45, analyticalThinking: 0.25 },
-  growth: { leadership: 0.85, independence: 0.45, communication: 0.2 },
-  fastPaced: { leadership: 0.55, independence: 0.4, organization: 0.25 },
+  growth: { leadership: 0.85, independence: 0.45, communication: 0.2, adaptability: 0.45 },
+  fastPaced: { leadership: 0.55, independence: 0.4, organization: 0.25, adaptability: 1 },
   independent: { independence: 1, researchOrientation: 0.35, structure: 0.2, persistence: 0.25 },
   structure: { structure: 1, organization: 0.65 },
   focus: { persistence: 0.85, independence: 0.45, structure: 0.3 },
@@ -71,7 +72,7 @@ export const categoryFallbackWeights: Record<string, Partial<TraitVector>> = {
   technology: { technicalInterest: 0.85, logic: 0.7, analyticalThinking: 0.45, persistence: 0.25 },
   creative: { creativity: 0.8, visualInterest: 0.75, communication: 0.3 },
   science: { researchOrientation: 0.9, analyticalThinking: 0.7, structure: 0.45, curiosity: 0.45 },
-  business: { leadership: 0.75, organization: 0.65, communication: 0.4 },
+  business: { leadership: 0.75, organization: 0.65, communication: 0.4, adaptability: 0.35 },
   social: { helpingPeople: 0.85, communication: 0.65, teamwork: 0.45 },
   health: { helpingPeople: 0.7, structure: 0.65, researchOrientation: 0.45, persistence: 0.45 },
 }

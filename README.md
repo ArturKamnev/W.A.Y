@@ -2,7 +2,7 @@
 
 W.A.Y. means **Who Are You**. It is a Russian-first career guidance and self-discovery platform for school students with a polished React frontend and a production-style Node.js API.
 
-The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, an admin dashboard, deterministic career-test scoring, backend-only Groq integration for controlled explanations, and a custom animated SPA 404 page.
+The MVP now includes real authentication, PostgreSQL persistence, Prisma migrations, saved professions, test attempts/results, W.A.Y. Guide conversations, persisted product feedback with admin moderation, an admin dashboard, deterministic career-test scoring, backend-only Groq integration for controlled explanations, and a custom animated SPA 404 page.
 
 ## Stack
 
@@ -29,7 +29,7 @@ server/                 Express + Prisma backend
     config/             env validation
     db/                 Prisma client
     middleware/         auth, role guard, error handler
-    modules/            auth, test, professions, guide, profile, admin, health
+    modules/            auth, test, professions, guide, profile, feedback, admin, health
     services/           Groq integration
 ```
 
@@ -96,6 +96,8 @@ npm.cmd --prefix server run prisma:migrate
 npm.cmd --prefix server run prisma:seed
 ```
 
+The feedback system is delivered through Prisma migration `20260417000000_feedback`. Existing local databases should run `npm.cmd --prefix server run prisma:migrate` before starting the API.
+
 Seeded credentials:
 
 ```text
@@ -145,14 +147,16 @@ The API is mounted at `/api` and includes:
 - `GET /api/professions`, `GET /api/professions/:slug`, save/remove/list saved professions
 - `GET /api/profile`, `PATCH /api/profile`
 - `GET /api/guide/topics`, conversations, persisted messages
+- `POST /api/feedback`
 - `GET /api/admin/stats`, user list/detail/update/status/role
+- `GET /api/admin/feedback`, `DELETE /api/admin/feedback/:id`
 - `GET /api/health`
 
 Authentication is JWT-based. Passwords are hashed with bcryptjs. Private routes require `Authorization: Bearer <token>`, and admin routes require the `admin` role.
 
 ## Database
 
-Prisma uses PostgreSQL only. The schema includes users, professions, translated test questions/options, attempts, answers, results, saved professions, guide conversations/messages, result recommendations, and admin audit logs.
+Prisma uses PostgreSQL only. The schema includes users, professions, translated test questions/options, attempts, answers, results, saved professions, feedback messages, guide conversations/messages, result recommendations, and admin audit logs.
 
 ## Career-Test Result Pipeline
 
@@ -165,6 +169,16 @@ The result system is deterministic first and AI-assisted second.
 5. Groq receives only the locked structured result. It does not see raw answers and cannot decide rankings, invent professions, or change percentages.
 
 The backend persists four recommendations per result: the primary profession and three additional professions. All recommendations come from the existing `Profession` table.
+
+## Test Flow Controls
+
+The test page keeps local progress in the existing persisted Zustand test store. The interaction rules are deliberate:
+
+- `Reset test` clears all selected answers, resets autosave state, and returns to the first question.
+- Forward movement is locked until the current question has an answer.
+- Back navigation remains available, so users can review earlier answers without getting trapped.
+- The final result controls remain unavailable until all 35 questions are answered.
+- Result submission still uses the existing backend `/api/test/submit` flow and deterministic scoring pipeline.
 
 ## AI JSON-Only Explanation
 
@@ -197,6 +211,30 @@ The frontend keeps the existing service architecture:
 
 The login/signup, profile, test submit, results, professions save/remove, guide chat, and admin dashboard call the backend. Zustand persists the client session token and useful UI state, never passwords. The results page renders the primary profession separately from the three additional recommendations, uses real match percentages, and shows the validated summary plus short "why it fits" bullets.
 
+## Feedback System
+
+The header includes a visible feedback action. Users can submit wishes, suggestions, or product feedback from any page.
+
+Frontend behavior:
+
+- Feedback opens in a product-styled modal from the shared layout.
+- Message is required and validated client-side.
+- Name and email are optional. If the user is signed in and leaves email empty, the session email is sent.
+- Loading, success, and error states are shown inline.
+
+Backend behavior:
+
+- `POST /api/feedback` stores feedback in PostgreSQL through Prisma.
+- Auth is optional. Signed-in feedback is linked to the user; anonymous feedback is still accepted.
+- The API stores message, optional contact fields, page path, user agent, and creation date.
+
+Admin moderation:
+
+- Admins can view submitted feedback in `/admin`.
+- `GET /api/admin/feedback` returns the latest feedback entries.
+- `DELETE /api/admin/feedback/:id` removes handled entries and writes an admin audit log.
+- The admin stats panel includes a feedback count.
+
 ## Custom 404 Page
 
 Unknown SPA routes render `src/pages/NotFoundPage.tsx` outside `AppLayout`, so the 404 route has no header, footer, or global navigation.
@@ -213,7 +251,17 @@ The typed subtitle rotates every five seconds through `useTypedRotatingText`. Th
 
 ## Admin Panel
 
-The `/admin` route is protected in the UI and by the backend. It shows total users, active users, completed tests, saved professions, guide conversations, recent signups, and a searchable user table. Admins can activate/deactivate users and switch user/admin roles. Changes are written to `AdminAuditLog`.
+The `/admin` route is protected in the UI and by the backend. It shows total users, active users, completed tests, saved professions, guide conversations, recent signups, feedback count, a searchable user table, and a feedback moderation list. Admins can activate/deactivate users, switch user/admin roles, and delete handled feedback. Changes are written to `AdminAuditLog` where moderation changes need traceability.
+
+## Responsive and Mobile UX
+
+The responsive layer is designed around consistent layout rules instead of page-specific hacks:
+
+- Global overflow guards prevent horizontal scrolling from wide grids or animated content.
+- Grid children use `min-width: 0` so cards, result panels, and admin rows can shrink correctly.
+- The mobile drawer is centered under the header, uses safe viewport width, has balanced spacing, and keeps touch targets at comfortable heights.
+- Test controls stack cleanly on phones, including reset and final result actions.
+- The 404 page preserves its cinematic visual identity while scaling typography, ASCII art, CTA placement, and ambient frame for small screens.
 
 ## Landing Motion Fix
 

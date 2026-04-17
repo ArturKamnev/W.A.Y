@@ -177,7 +177,11 @@ testRouter.post(
           strengths: toJson(deterministic.strengths),
           workStyle: toJson(deterministic.workStyle),
           preferredEnvironment: toJson(deterministic.preferredEnvironment),
-          recommendedDirections: toJson(deterministic.recommendedDirections),
+          recommendedDirections: toJson({
+            items: deterministic.recommendedDirections,
+            profileClarity: deterministic.profileClarity,
+            dominantTraits: deterministic.dominantTraits,
+          }),
           roadmap: toJson(deterministic.roadmap),
           aiExplanationRu: aiExplanationRu?.summary,
           aiExplanationEn: aiExplanationEn?.summary,

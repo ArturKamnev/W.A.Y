@@ -11,7 +11,7 @@ function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value))
 }
 
-export function normalizeMatchPercents(ranked: RankedProfessionResult[]): RankedProfessionResult[] {
+export function normalizeMatchPercents(ranked: RankedProfessionResult[], profileClarity = 0.72): RankedProfessionResult[] {
   if (!ranked.length) return []
 
   const scores = ranked.map((item) => item.score)
@@ -23,7 +23,10 @@ export function normalizeMatchPercents(ranked: RankedProfessionResult[]): Ranked
     const relative = (item.score - minScore) / spread
     const scoreConfidence = clamp(item.score, 0, 1)
     const rankAdjustment = Math.max(0, 4 - index) * 0.6
-    const matchPercent = Math.round(clamp(42 + scoreConfidence * 50 + relative * 6 + rankAdjustment, 35, 96))
+    const clarityAdjustment = clamp(profileClarity, 0.38, 1)
+    const base = 36 + clarityAdjustment * 9
+    const ceiling = 84 + clarityAdjustment * 12
+    const matchPercent = Math.round(clamp(base + scoreConfidence * 45 + relative * 5 + rankAdjustment, 34, ceiling))
 
     return { ...item, matchPercent }
   })
@@ -127,6 +130,9 @@ function chooseDirections(dominantTraits: TraitKey[]) {
   if (dominantTraits.includes('leadership') || dominantTraits.includes('organization')) {
     directions.push({ key: 'results.directions.digitalProducts', ru: 'Продуктовое и организационное направление', en: 'Product and organizational direction' })
   }
+  if (dominantTraits.includes('adaptability') && !directions.some((item) => item.key === 'results.directions.productExperiments')) {
+    directions.push({ key: 'results.directions.productExperiments', ru: 'Проектные эксперименты и динамичные команды', en: 'Project experiments and dynamic teams' })
+  }
 
   return directions.slice(0, 3)
 }
@@ -135,6 +141,7 @@ function buildReasoning(input: {
   dominantTraits: TraitKey[]
   primary: RankedProfessionResult
   alternatives: RankedProfessionResult[]
+  profileClarity: number
 }) {
   const topTraitsRu = listTraitsRu(input.dominantTraits.slice(0, 4))
   const topTraitsEn = listTraitsEn(input.dominantTraits.slice(0, 4))
@@ -142,17 +149,25 @@ function buildReasoning(input: {
   const primarySharedEn = listTraitsEn(input.primary.sharedTraits)
   const alternativesRu = input.alternatives.map((item) => item.profession.titleRu).join(', ')
   const alternativesEn = input.alternatives.map((item) => item.profession.titleEn).join(', ')
+  const confidenceRu =
+    input.profileClarity >= 0.72
+      ? 'Профиль ответов достаточно сфокусирован, поэтому основной результат можно читать как сильную гипотезу для проверки.'
+      : 'Профиль ответов широкий: результат показывает несколько близких гипотез, поэтому особенно полезно сравнить альтернативы через маленькие пробы.'
+  const confidenceEn =
+    input.profileClarity >= 0.72
+      ? 'The answer profile is fairly focused, so the primary result can be read as a strong hypothesis to test.'
+      : 'The answer profile is broad: the result shows several close hypotheses, so comparing alternatives through small trials will be especially useful.'
 
   return {
     reasoningRu: [
       `Профиль ответов сильнее всего показывает: ${topTraitsRu}. Эти признаки сравнивались с профилями профессий из каталога W.A.Y.`,
       `Основное совпадение - ${input.primary.profession.titleRu}: у него пересекаются ключевые требования с вашими ответами (${primarySharedRu}).`,
-      `Альтернативы (${alternativesRu}) оставлены в результате, потому что они близки по расчету, но предлагают другие рабочие среды и первые шаги.`,
+      `${confidenceRu} Альтернативы (${alternativesRu}) близки по расчету, но предлагают другие рабочие среды и первые шаги.`,
     ],
     reasoningEn: [
       `The answer profile is strongest in ${topTraitsEn}. These signals were compared with W.A.Y. profession profiles.`,
       `The primary match is ${input.primary.profession.titleEn}: its core requirements overlap with your answers (${primarySharedEn}).`,
-      `The alternatives (${alternativesEn}) remain in the result because they are close by calculation but point to different work environments and first steps.`,
+      `${confidenceEn} The alternatives (${alternativesEn}) are close by calculation but point to different work environments and first steps.`,
     ],
   }
 }
@@ -161,9 +176,10 @@ export function buildFinalResult(input: {
   userTraits: TraitVector
   tagScores: Record<string, number>
   dominantTraits: TraitKey[]
+  profileClarity: number
   ranked: RankedProfessionResult[]
 }): CareerTestDeterministicResult {
-  const normalized = normalizeMatchPercents(input.ranked)
+  const normalized = normalizeMatchPercents(input.ranked, input.profileClarity)
   const selected = normalized.slice(0, 4)
   const primary = selected[0]
   const alternatives = selected.slice(1, 4)
@@ -171,18 +187,32 @@ export function buildFinalResult(input: {
   const recommendations = selected.map((item) => ({ ...item, ...buildRecommendationReason(item) }))
   const topTraitRu = listTraitsRu(input.dominantTraits.slice(0, 3))
   const topTraitEn = listTraitsEn(input.dominantTraits.slice(0, 3))
-  const reasoning = buildReasoning({ dominantTraits: input.dominantTraits, primary, alternatives })
+  const reasoning = buildReasoning({
+    dominantTraits: input.dominantTraits,
+    primary,
+    alternatives,
+    profileClarity: input.profileClarity,
+  })
+  const clarityRu =
+    input.profileClarity >= 0.72
+      ? 'Ответы дали достаточно сфокусированный профиль.'
+      : 'Ответы дали широкий профиль, поэтому несколько направлений могут быть близки.'
+  const clarityEn =
+    input.profileClarity >= 0.72
+      ? 'Your answers produced a fairly focused profile.'
+      : 'Your answers produced a broad profile, so several directions may be close.'
 
   return {
     userTraits: input.userTraits,
     tagScores: input.tagScores,
     dominantTraits: input.dominantTraits,
+    profileClarity: input.profileClarity,
     primary,
     alternatives,
     recommendations,
     profileTitleKey: 'results.profileTitle',
-    summaryRu: `Лучшее расчетное совпадение - ${primary.profession.titleRu} (${primary.matchPercent}%). Алгоритм опирается на ответы, где сильнее всего проявились: ${topTraitRu}. Это ориентир для проверки направления, а не окончательный диагноз.`,
-    summaryEn: `The strongest calculated match is ${primary.profession.titleEn} (${primary.matchPercent}%). The algorithm is based on answers where these signals were strongest: ${topTraitEn}. Treat it as a direction to test, not a final verdict.`,
+    summaryRu: `Лучшее расчетное совпадение - ${primary.profession.titleRu} (${primary.matchPercent}%). Алгоритм опирается на ответы, где сильнее всего проявились: ${topTraitRu}. ${clarityRu} Это ориентир для проверки направления, а не окончательный диагноз.`,
+    summaryEn: `The strongest calculated match is ${primary.profession.titleEn} (${primary.matchPercent}%). The algorithm is based on answers where these signals were strongest: ${topTraitEn}. ${clarityEn} Treat it as a direction to test, not a final verdict.`,
     reasoningRu: reasoning.reasoningRu,
     reasoningEn: reasoning.reasoningEn,
     strengths: dominantLabels,

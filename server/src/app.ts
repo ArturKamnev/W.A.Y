@@ -11,6 +11,7 @@ import { professionRouter } from './modules/professions/profession.routes.js'
 import { testRouter } from './modules/test/test.routes.js'
 import { profileRouter } from './modules/users/profile.routes.js'
 import { errorHandler } from './middleware/errorHandler.js'
+import { feedbackRouter } from './modules/feedback/feedback.routes.js'
 
 export function createApp() {
   const app = express()
@@ -55,6 +56,7 @@ export function createApp() {
   app.use('/api/professions', professionRouter)
   app.use('/api/profile', profileRouter)
   app.use('/api/guide', guideRouter)
+  app.use('/api/feedback', feedbackRouter)
   app.use('/api/admin', adminRouter)
 
   app.use(errorHandler)

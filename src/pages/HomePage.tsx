@@ -17,6 +17,14 @@ const benefits = [
   ['C', 'home.benefits.futureTitle', 'home.benefits.futureBody'],
 ]
 
+const proofPoints = ['home.proof.algorithm', 'home.proof.explainable', 'home.proof.safeAi']
+
+const signalCards = [
+  ['home.signals.traitsTitle', 'home.signals.traitsBody'],
+  ['home.signals.contextTitle', 'home.signals.contextBody'],
+  ['home.signals.nextStepTitle', 'home.signals.nextStepBody'],
+]
+
 const slideCount = 5
 const ease = [0.22, 1, 0.36, 1] as const
 
@@ -168,6 +176,11 @@ export function HomePage() {
                   {t('home.secondaryCta')}
                 </Link>
               </motion.div>
+              <motion.div className="hero-proof-row" variants={item}>
+                {proofPoints.map((key) => (
+                  <span key={key}>{t(key)}</span>
+                ))}
+              </motion.div>
             </motion.div>
 
             <motion.div
@@ -202,6 +215,14 @@ export function HomePage() {
                 <h3>{t(title)}</h3>
                 <p>{t(body)}</p>
               </Card>
+            </motion.div>
+          ))}
+        </motion.div>
+        <motion.div className="signal-strip" variants={group} initial={revealInitial} viewport={{ amount: 0.34, once: false }} whileInView="visible">
+          {signalCards.map(([title, body]) => (
+            <motion.div className="signal-strip__item" key={title} variants={item}>
+              <h3>{t(title)}</h3>
+              <p>{t(body)}</p>
             </motion.div>
           ))}
         </motion.div>
@@ -248,13 +269,13 @@ export function HomePage() {
         >
           <div>
             <span className="feature-icon">S</span>
-            <h3>{t('professions.categories.social')}</h3>
-            <p>{t('home.steps.threeBody')}</p>
+            <h3>{t('home.audienceStudentTitle')}</h3>
+            <p>{t('home.audienceStudentBody')}</p>
           </div>
           <div>
             <span className="feature-icon">M</span>
-            <h3>Уверенность</h3>
-            <p>{t('about.helpBody')}</p>
+            <h3>{t('home.audienceMentorTitle')}</h3>
+            <p>{t('home.audienceMentorBody')}</p>
           </div>
         </motion.div>
         </Section>

@@ -14,6 +14,7 @@ export function computeResult(scoredAnswers: ScoredAnswer[], professions: Profes
     userTraits: profile.vector,
     tagScores: profile.tagScores,
     dominantTraits: profile.dominantTraits,
+    profileClarity: profile.profileClarity,
     ranked,
   })
 }

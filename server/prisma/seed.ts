@@ -41,6 +41,7 @@ async function main() {
   await prisma.guideMessage.deleteMany()
   await prisma.guideConversation.deleteMany()
   await prisma.savedProfession.deleteMany()
+  await prisma.feedback.deleteMany()
   await prisma.resultRecommendation.deleteMany()
   await prisma.testResult.deleteMany()
   await prisma.testAnswer.deleteMany()
@@ -162,10 +163,14 @@ async function main() {
       ],
       workStyle: { key: 'results.workStyle', ru: 'Фокус и мягкая командная работа.', en: 'Focused work with gentle collaboration.' },
       preferredEnvironment: { key: 'results.environment', ru: 'Современные продуктовые и учебные команды.', en: 'Modern product and learning teams.' },
-      recommendedDirections: [
-        { key: 'results.directions.digitalProducts', ru: 'Цифровые продукты', en: 'Digital products' },
-        { key: 'results.directions.humanResearch', ru: 'Исследование людей', en: 'Human research' },
-      ],
+      recommendedDirections: {
+        items: [
+          { key: 'results.directions.digitalProducts', ru: 'Цифровые продукты', en: 'Digital products' },
+          { key: 'results.directions.humanResearch', ru: 'Исследование людей', en: 'Human research' },
+        ],
+        profileClarity: 0.78,
+        dominantTraits: ['visualInterest', 'helpingPeople', 'creativity'],
+      },
       roadmap: mockRoadmap,
       aiExplanationRu: 'Это демо-объяснение можно заменить ответом Groq после добавления ключа.',
       aiExplanationEn: 'This demo explanation can be replaced by Groq after adding an API key.',

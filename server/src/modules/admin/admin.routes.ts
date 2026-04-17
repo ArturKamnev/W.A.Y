@@ -20,16 +20,62 @@ adminRouter.get(
   '/stats',
   asyncHandler(async (_request, response) => {
     const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-    const [totalUsers, activeUsers, completedTests, savedProfessions, guideConversations, recentSignups] = await Promise.all([
+    const [totalUsers, activeUsers, completedTests, savedProfessions, guideConversations, recentSignups, feedbackCount] = await Promise.all([
       prisma.user.count(),
       prisma.user.count({ where: { isActive: true } }),
       prisma.testAttempt.count({ where: { status: 'completed' } }),
       prisma.savedProfession.count(),
       prisma.guideConversation.count(),
       prisma.user.count({ where: { createdAt: { gte: since } } }),
+      prisma.feedback.count(),
     ])
 
-    response.json({ totalUsers, activeUsers, completedTests, savedProfessions, guideConversations, recentSignups })
+    response.json({ totalUsers, activeUsers, completedTests, savedProfessions, guideConversations, recentSignups, feedbackCount })
+  }),
+)
+
+adminRouter.get(
+  '/feedback',
+  asyncHandler(async (_request, response) => {
+    const feedback = await prisma.feedback.findMany({
+      orderBy: { createdAt: 'desc' },
+      take: 100,
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
+        },
+      },
+    })
+
+    response.json(
+      feedback.map((item) => ({
+        id: item.id,
+        message: item.message,
+        name: item.name,
+        email: item.email,
+        page: item.page,
+        userAgent: item.userAgent,
+        createdAt: item.createdAt.toISOString(),
+        user: item.user,
+      })),
+    )
+  }),
+)
+
+adminRouter.delete(
+  '/feedback/:id',
+  asyncHandler(async (request, response) => {
+    const id = String(request.params.id)
+    const feedback = await prisma.feedback.findUnique({ where: { id } })
+    if (!feedback) throw new HttpError(404, 'Feedback not found')
+
+    await prisma.feedback.delete({ where: { id } })
+    await audit(request.user!.id, 'feedback.delete', feedback.userId ?? undefined, { feedbackId: feedback.id })
+    response.status(204).send()
   }),
 )
 

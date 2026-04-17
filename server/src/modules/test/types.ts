@@ -16,6 +16,7 @@ export const traitKeys = [
   'organization',
   'curiosity',
   'persistence',
+  'adaptability',
 ] as const
 
 export type TraitKey = (typeof traitKeys)[number]
@@ -36,6 +37,7 @@ export interface ScoredTraitProfile {
   vector: TraitVector
   tagScores: Record<string, number>
   dominantTraits: TraitKey[]
+  profileClarity: number
 }
 
 export interface ProfessionTraitProfile {
@@ -56,6 +58,7 @@ export interface CareerTestDeterministicResult {
   userTraits: TraitVector
   tagScores: Record<string, number>
   dominantTraits: TraitKey[]
+  profileClarity: number
   primary: RankedProfessionResult
   alternatives: RankedProfessionResult[]
   recommendations: Array<RankedProfessionResult & { reasonRu: string; reasonEn: string }>

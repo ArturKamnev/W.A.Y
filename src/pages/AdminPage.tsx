@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Badge, Button, Card, Field, Input, LoadingState, Select, Section } from '../components/ui'
+import { Badge, Button, Card, EmptyState, Field, Input, LoadingState, Select, Section } from '../components/ui'
 import { repositories } from '../services/repositories'
 import { useAuthStore } from '../store/useStores'
-import type { AdminStats, AdminUser } from '../types/models'
+import type { AdminFeedback, AdminStats, AdminUser } from '../types/models'
 
 export function AdminPage() {
   const { t } = useTranslation()
   const session = useAuthStore((state) => state.session)
   const [stats, setStats] = useState<AdminStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
+  const [feedback, setFeedback] = useState<AdminFeedback[]>([])
   const [search, setSearch] = useState('')
   const [role, setRole] = useState<'all' | 'user' | 'admin'>('all')
   const [loading, setLoading] = useState(true)
@@ -23,11 +24,13 @@ export function AdminPage() {
     Promise.all([
       repositories.admin.getStats(),
       repositories.admin.listUsers({ search, role: role === 'all' ? undefined : role }),
+      repositories.admin.listFeedback(),
     ])
-      .then(([nextStats, nextUsers]) => {
+      .then(([nextStats, nextUsers, nextFeedback]) => {
         if (!active) return
         setStats(nextStats)
         setUsers(nextUsers)
+        setFeedback(nextFeedback)
       })
       .finally(() => {
         if (active) setLoading(false)
@@ -47,9 +50,10 @@ export function AdminPage() {
             ['admin.stats.savedProfessions', stats.savedProfessions],
             ['admin.stats.guideConversations', stats.guideConversations],
             ['admin.stats.recentSignups', stats.recentSignups],
+            ['admin.stats.feedbackCount', stats.feedbackCount ?? feedback.length],
           ]
         : [],
-    [stats],
+    [feedback.length, stats],
   )
 
   const setUserStatus = async (user: AdminUser) => {
@@ -61,6 +65,19 @@ export function AdminPage() {
     const nextRole = user.role === 'admin' ? 'user' : 'admin'
     const updated = await repositories.admin.setUserRole(user.id, nextRole)
     setUsers((current) => current.map((item) => (item.id === updated.id ? { ...item, ...updated } : item)))
+  }
+
+  const deleteFeedback = async (item: AdminFeedback) => {
+    await repositories.admin.deleteFeedback(item.id)
+    setFeedback((current) => current.filter((feedbackItem) => feedbackItem.id !== item.id))
+    setStats((current) =>
+      current
+        ? {
+            ...current,
+            feedbackCount: Math.max(0, (current.feedbackCount ?? feedback.length) - 1),
+          }
+        : current,
+    )
   }
 
   if (!session) {
@@ -138,6 +155,41 @@ export function AdminPage() {
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card className="profile-panel admin-panel">
+        <div className="admin-panel__header">
+          <div>
+            <Badge>{t('admin.feedback.title')}</Badge>
+            <h3>{t('admin.feedback.heading')}</h3>
+            <p>{t('admin.feedback.lead')}</p>
+          </div>
+        </div>
+
+        {feedback.length ? (
+          <div className="feedback-admin-list">
+            {feedback.map((item) => (
+              <article className="feedback-admin-item" key={item.id}>
+                <div>
+                  <div className="feedback-admin-item__meta">
+                    <Badge>{new Date(item.createdAt).toLocaleString()}</Badge>
+                    {item.page ? <Badge>{item.page}</Badge> : null}
+                  </div>
+                  <p>{item.message}</p>
+                  <small>
+                    {item.user?.email ?? item.email ?? t('admin.feedback.anonymous')}
+                    {item.name ? ` · ${item.name}` : ''}
+                  </small>
+                </div>
+                <Button type="button" variant="ghost" onClick={() => void deleteFeedback(item)}>
+                  {t('admin.feedback.delete')}
+                </Button>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <EmptyState title={t('admin.feedback.emptyTitle')} body={t('admin.feedback.emptyBody')} />
+        )}
       </Card>
     </Section>
   )

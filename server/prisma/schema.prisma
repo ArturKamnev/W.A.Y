@@ -38,6 +38,7 @@ model User {
   attempts          TestAttempt[]
   results           TestResult[]
   savedProfessions  SavedProfession[]
+  feedback          Feedback[]
   conversations     GuideConversation[]
   auditLogs         AdminAuditLog[]     @relation("AdminAuditLogs")
   targetedAuditLogs AdminAuditLog[]     @relation("TargetUserAuditLogs")
@@ -169,6 +170,21 @@ model SavedProfession {
   profession   Profession @relation(fields: [professionId], references: [id], onDelete: Cascade)
 
   @@unique([userId, professionId])
+}
+
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  name      String?
+  email     String?
+  message   String
+  page      String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([userId])
 }
 
 model GuideConversation {

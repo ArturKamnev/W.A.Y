@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { Badge, Button, Card, Section } from '../components/ui'
+import { Badge, Button, Card, ProgressBar, Section } from '../components/ui'
 import { CareerCard, RecommendationList, ResultCard } from '../components/domain/Cards'
 import { repositories } from '../services/repositories'
 import { useSavedItemsStore } from '../store/useStores'
@@ -52,6 +52,16 @@ export function ResultsPage() {
   const primaryRecommendation = result.primaryRecommendation ?? result.recommendations[0]
   const primaryProfession = primaryRecommendation ? professions.find((item) => item.id === primaryRecommendation.professionId) : undefined
   const reasoning = i18n.language === 'ru' && result.reasoningRu?.length ? result.reasoningRu : result.reasoningEn ?? []
+  const runnerUp = result.alternativeRecommendations?.[0] ?? result.recommendations[1]
+  const matchGap =
+    primaryRecommendation && runnerUp ? Math.max(0, primaryRecommendation.matchPercent - runnerUp.matchPercent) : undefined
+  const clarityPercent = Math.round((result.profileClarity ?? 0.72) * 100)
+  const confidenceLabel =
+    clarityPercent >= 72
+      ? t('results.confidence.focused')
+      : clarityPercent >= 58
+        ? t('results.confidence.moderate')
+        : t('results.confidence.broad')
 
   return (
     <>
@@ -80,6 +90,32 @@ export function ResultsPage() {
             <ResultCard title={t('results.strengthsTitle')} values={strengths} />
             <ResultCard title={t('results.directionsTitle')} values={directions} />
           </div>
+        </div>
+      </Section>
+
+      <Section title={t('results.evidenceTitle')} lead={t('results.evidenceLead')} compact>
+        <div className="result-evidence-grid">
+          {primaryRecommendation ? (
+            <Card className="result-card result-metric-card">
+              <Badge>{t('results.metrics.primary')}</Badge>
+              <strong>{primaryRecommendation.matchPercent}%</strong>
+              <ProgressBar value={primaryRecommendation.matchPercent} label={t('results.metrics.primary')} />
+              <p>{t('results.metrics.primaryBody')}</p>
+            </Card>
+          ) : null}
+          <Card className="result-card result-metric-card">
+            <Badge>{t('results.metrics.confidence')}</Badge>
+            <strong>{clarityPercent}%</strong>
+            <ProgressBar value={clarityPercent} label={t('results.metrics.confidence')} />
+            <p>{confidenceLabel}</p>
+          </Card>
+          {typeof matchGap === 'number' ? (
+            <Card className="result-card result-metric-card">
+              <Badge>{t('results.metrics.gap')}</Badge>
+              <strong>{matchGap}%</strong>
+              <p>{matchGap >= 7 ? t('results.metrics.gapClear') : t('results.metrics.gapClose')}</p>
+            </Card>
+          ) : null}
         </div>
       </Section>
 

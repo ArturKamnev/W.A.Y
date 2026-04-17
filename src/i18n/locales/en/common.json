@@ -16,6 +16,7 @@
     "signup": "Sign up",
     "logout": "Sign out",
     "admin": "Admin",
+    "feedback": "Feedback",
     "start": "Start the test",
     "menu": "Open navigation",
     "language": "Language"
@@ -47,6 +48,11 @@
     "secondaryCta": "Explore professions",
     "visualTitle": "A clearer next step starts with one honest answer.",
     "visualBody": "Take a guided test, reflect with W.A.Y. Guide, and turn uncertainty into a personal roadmap.",
+    "proof": {
+      "algorithm": "35 meaningful questions",
+      "explainable": "Explainable percentages",
+      "safeAi": "AI only as beta explanation"
+    },
     "howEyebrow": "How it works",
     "howTitle": "A calm flow from reflection to action.",
     "howLead": "Focused, supportive, and useful from the first question.",
@@ -69,8 +75,20 @@
       "futureTitle": "Ready for real data",
       "futureBody": "Prepared for backend services, profiles, and AI integration."
     },
+    "signals": {
+      "traitsTitle": "Traits",
+      "traitsBody": "The algorithm looks for stable signals: thinking, communication, environment, pace, and motivation.",
+      "contextTitle": "Context",
+      "contextBody": "Professions are compared by several work requirements, not by one isolated tag.",
+      "nextStepTitle": "Testing",
+      "nextStepBody": "The result leads to a small action: study a role, try a skill, or discuss the pattern."
+    },
     "audienceTitle": "For students, parents, and mentors looking for a better conversation.",
     "audienceLead": "W.A.Y. creates shared language around strengths, options, and practical first steps.",
+    "audienceStudentTitle": "For students",
+    "audienceStudentBody": "Less pressure, clearer language about yourself, and concrete directions for a first experiment.",
+    "audienceMentorTitle": "For mentors",
+    "audienceMentorBody": "The result helps discuss choice through evidence, interests, and observable strengths.",
     "ctaTitle": "Start with curiosity. Leave with direction.",
     "ctaBody": "The first test takes only a few minutes and gives you a grounded starting point."
   },
@@ -116,7 +134,9 @@
     "back": "Back",
     "next": "Next",
     "finish": "See my result",
+    "reset": "Reset test",
     "answered": "Answered {{answered}} of {{total}}",
+    "answerRequired": "Choose an answer before moving forward.",
     "readyBadge": "All answers ready",
     "unansweredBadge": "{{count}} left",
     "resultChoiceTitle": "Choose your result format",
@@ -182,6 +202,18 @@
       "q35": "I am motivated by growth, responsibility, and the chance to lead a project or people toward a result."
     }
   },
+  "feedback": {
+    "title": "Feedback",
+    "lead": "Tell us what to improve in W.A.Y. You can send a wish, idea, or interface note.",
+    "message": "Message",
+    "placeholder": "For example: I want more IT careers or a clearer result explanation...",
+    "name": "Name (optional)",
+    "email": "Email (optional)",
+    "submit": "Send feedback",
+    "sending": "Sending...",
+    "success": "Thank you. Your message was saved and will appear in the admin panel.",
+    "error": "Write at least 10 characters and check the email if provided."
+  },
   "results": {
     "eyebrow": "Your direction profile",
     "title": "You are starting to see the pattern.",
@@ -222,7 +254,23 @@
     "directions": {
       "digitalProducts": "Digital products and interfaces",
       "humanResearch": "Human behavior and research",
-      "learningDesign": "Learning, mentoring, and communication"
+      "learningDesign": "Learning, mentoring, and communication",
+      "productExperiments": "Project experiments and dynamic teams"
+    },
+    "evidenceTitle": "Calculation confidence",
+    "evidenceLead": "These indicators help explain how focused the profile is and how far the primary option is from the alternatives.",
+    "confidence": {
+      "focused": "The profile is fairly focused: the primary result is a strong hypothesis to test.",
+      "moderate": "The profile is moderately focused: the primary option matters, but alternatives are worth checking.",
+      "broad": "The profile is broad: several directions may be close, so compare them through practice."
+    },
+    "metrics": {
+      "primary": "Primary match",
+      "primaryBody": "The percentage is calculated from answer fit against the profession profile.",
+      "confidence": "Profile focus",
+      "gap": "Gap",
+      "gapClear": "The primary option is meaningfully ahead of the closest alternative.",
+      "gapClose": "Alternatives are close, so read the result as a set of hypotheses."
     },
     "roadmap": {
       "step1": { "title": "Pick two professions to investigate", "description": "Write down what feels exciting, unclear, and challenging." },
@@ -468,7 +516,17 @@
       "completedTests": "Completed tests",
       "savedProfessions": "Saved professions",
       "guideConversations": "Guide chats",
-      "recentSignups": "Recent signups"
+      "recentSignups": "Recent signups",
+      "feedbackCount": "Feedback messages"
+    },
+    "feedback": {
+      "title": "Feedback",
+      "heading": "User messages",
+      "lead": "Review user wishes and delete entries after they are handled.",
+      "anonymous": "Anonymous user",
+      "delete": "Delete",
+      "emptyTitle": "No feedback yet",
+      "emptyBody": "When users submit feedback, it will appear here."
     }
   },
   "footer": {

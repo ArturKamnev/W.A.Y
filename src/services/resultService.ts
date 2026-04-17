@@ -56,6 +56,8 @@ export const resultService = {
       profileTitleKey: 'results.profileTitle',
       summaryKey: 'results.summary',
       resultMode: submission.resultMode ?? 'algorithm',
+      profileClarity: 0.72,
+      dominantTraits: ['technicalInterest', 'creativity', 'helpingPeople'],
       summaryRu:
         submission.resultMode === 'ai'
           ? 'AI-режим beta опирается на тот же расчет: профессии и проценты не меняются моделью, а объяснение остается осторожным.'

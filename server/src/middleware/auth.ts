@@ -50,6 +50,40 @@ export async function requireAuth(request: Request, _response: Response, next: N
   }
 }
 
+export async function optionalAuth(request: Request, _response: Response, next: NextFunction) {
+  try {
+    const header = request.headers.authorization
+    const token = header?.startsWith('Bearer ') ? header.slice(7) : undefined
+    if (!token) return next()
+
+    const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload
+    if (!payload?.sub || typeof payload.sub !== 'string') return next()
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.sub },
+      select: {
+        id: true,
+        role: true,
+        email: true,
+        preferredLanguage: true,
+        isActive: true,
+      },
+    })
+
+    if (user?.isActive) {
+      request.user = {
+        id: user.id,
+        role: user.role,
+        email: user.email,
+        preferredLanguage: user.preferredLanguage,
+      }
+    }
+    next()
+  } catch {
+    next()
+  }
+}
+
 export function requireRole(role: UserRole) {
   return (request: Request, _response: Response, next: NextFunction) => {
     if (!request.user) return next(new HttpError(401, 'Authentication required'))

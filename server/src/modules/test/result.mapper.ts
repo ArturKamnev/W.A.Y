@@ -8,7 +8,12 @@ export function toResultDto(
   const strengths = result.strengths as Array<{ key?: string; ru?: string; en?: string }>
   const workStyle = result.workStyle as { key?: string; ru?: string; en?: string }
   const environment = result.preferredEnvironment as { key?: string; ru?: string; en?: string }
-  const directions = result.recommendedDirections as Array<{ key?: string; ru?: string; en?: string }>
+  const directionPayload = result.recommendedDirections as
+    | Array<{ key?: string; ru?: string; en?: string }>
+    | { items?: Array<{ key?: string; ru?: string; en?: string }>; profileClarity?: number; dominantTraits?: string[] }
+  const directions = Array.isArray(directionPayload) ? directionPayload : directionPayload.items ?? []
+  const profileClarity = Array.isArray(directionPayload) ? undefined : directionPayload.profileClarity
+  const dominantTraits = Array.isArray(directionPayload) ? [] : directionPayload.dominantTraits ?? []
   const roadmap = result.roadmap as Array<{ id: string; titleKey: string; descriptionKey: string; status: 'next' | 'later' | 'done' }>
   const aiReasoningRu = Array.isArray(result.aiReasoningRu) ? result.aiReasoningRu.filter((item): item is string => typeof item === 'string') : []
   const aiReasoningEn = Array.isArray(result.aiReasoningEn) ? result.aiReasoningEn.filter((item): item is string => typeof item === 'string') : []
@@ -28,6 +33,8 @@ export function toResultDto(
     summaryKey: 'results.summary',
     summaryRu: result.aiExplanationRu ?? result.summaryRu,
     summaryEn: result.aiExplanationEn ?? result.summaryEn,
+    profileClarity,
+    dominantTraits,
     strengthsKeys: strengths.map((item) => item.key ?? 'results.strengths.patterns'),
     strengthsText: strengths,
     workStyleKey: workStyle.key ?? 'results.workStyle',

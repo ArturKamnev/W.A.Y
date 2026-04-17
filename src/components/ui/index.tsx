@@ -77,6 +77,10 @@ export function Select({ className, ...props }: ComponentPropsWithoutRef<'select
   return <select className={clsx('select', className)} {...props} />
 }
 
+export function Textarea({ className, ...props }: ComponentPropsWithoutRef<'textarea'>) {
+  return <textarea className={clsx('textarea', className)} {...props} />
+}
+
 export function ProgressBar({ value, label }: { value: number; label?: string }) {
   const width = Math.max(0, Math.min(100, value))
 

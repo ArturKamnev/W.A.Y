@@ -206,6 +206,7 @@ export const groqService = {
         slug: item.profession.slug,
         matchPercent: item.matchPercent,
       })),
+      profileClarity: input.structuredResult.profileClarity,
       dominantTraits: input.structuredResult.strengths,
       userTraits: input.structuredResult.userTraits,
       tagScores: input.structuredResult.tagScores,

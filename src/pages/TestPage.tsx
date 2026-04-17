@@ -42,6 +42,7 @@ export function TestPage() {
 
   const currentQuestion = questions[currentIndex]
   const selectedOptionId = currentQuestion ? answers[currentQuestion.id]?.optionId : undefined
+  const currentAnswered = Boolean(selectedOptionId)
   const progress = questions.length ? ((currentIndex + 1) / questions.length) * 100 : 0
   const answeredCount = useMemo(() => Object.keys(answers).length, [answers])
   const isComplete = questions.length > 0 && answeredCount >= questions.length
@@ -49,6 +50,19 @@ export function TestPage() {
 
   const goToIndex = (index: number) => {
     setCurrentIndex(Math.max(0, Math.min(index, questions.length - 1)))
+  }
+
+  const goForward = () => {
+    if (!currentAnswered) {
+      setSubmitError(t('test.answerRequired'))
+      return
+    }
+    goToIndex(currentIndex + 1)
+  }
+
+  const resetProgress = () => {
+    resetTest()
+    setSubmitError(null)
   }
 
   const goToFirstUnanswered = () => {
@@ -131,17 +145,21 @@ export function TestPage() {
           <Button type="button" variant="secondary" disabled={currentIndex === 0} onClick={() => goToIndex(currentIndex - 1)}>
             {t('test.back')}
           </Button>
-          <Button type="button" variant="ghost" disabled={currentIndex === questions.length - 1} onClick={() => goToIndex(currentIndex + 1)}>
+          <Button type="button" variant="ghost" disabled={!currentAnswered || currentIndex === questions.length - 1} onClick={goForward}>
             {t('test.skip')}
           </Button>
           {currentIndex === questions.length - 1 ? null : (
-            <Button type="button" onClick={() => goToIndex(currentIndex + 1)}>
+            <Button type="button" disabled={!currentAnswered} onClick={goForward}>
               {t('test.next')}
             </Button>
           )}
+          <Button type="button" variant="ghost" disabled={submittingMode !== null || answeredCount === 0} onClick={resetProgress}>
+            {t('test.reset')}
+          </Button>
           <Badge>{t('test.answered', { answered: answeredCount, total: questions.length })}</Badge>
           {lastSavedAt ? <Badge>{t('test.autosaved')}</Badge> : null}
         </div>
+        {!currentAnswered ? <p className="test-hint">{t('test.answerRequired')}</p> : null}
 
         {currentIndex === questions.length - 1 ? (
           <Card className="test-finish-card">
